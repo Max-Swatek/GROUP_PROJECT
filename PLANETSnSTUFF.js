@@ -18,7 +18,7 @@ var lightConstant = 1.5;
 var planetRadius = 1;
 
 var cameraMinDistance = planetRadius*2.5;
-var cameraMaxDistance = 550;
+var cameraMaxDistance = 5000;
 
 var skybox;
 
@@ -42,7 +42,7 @@ function fillScene() {
 	//scene.add( new THREE.AmbientLight( 0x222222, lightConstant/5 ) );
 
 
-	addLight(.8, 1, 1, 500, planetRadius, 100);
+	addLight(.8, 1, 1, 0, 0, 0);
 
 	//Visualize the Axes - Useful for debugging, can turn this off if desired
  	//A simple grid floor, the variables hint at the plane that this lies within
@@ -54,10 +54,10 @@ function fillScene() {
  // scene.add(axes);
 	drawSkyBox();
 	//drawEarth();
-	var earth1 = drawPlanet({ x:0, y:0, z:0, radius:planetRadius, folder:'earth', atmosphere:true });
+	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'earth', atmosphere:true });
 	planets.push(earth1);
 	scene.add(planets[0].base);
-	var earth2 = drawPlanet({ x:20, y:0, z:0, radius:planetRadius, folder:'earth', atmosphere:true });
+	var earth2 = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'earth', atmosphere:true });
 	planets.push(earth2);
 	scene.add(planets[1].base);
 }
@@ -99,7 +99,7 @@ const addLight = (h, s, l, x, y, z ) => {
 }
 
 function drawSkyBox(){
-	var geometry = new THREE.CubeGeometry(4000,4000,4000);
+	var geometry = new THREE.CubeGeometry(10000,10000,10000);
 
 	var sides = [
 		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/posx.jpg"), side: THREE.DoubleSide}),
@@ -179,12 +179,12 @@ function init() {
 	// You also want a camera. The camera has a default position, but you most likely want to change this.
 	// You'll also want to allow a viewpoint that is reminiscent of using the machine as described in the pdf
 	// This might include a different position and/or a different field of view etc.
-	camera = new THREE.PerspectiveCamera( 45, canvasRatio, 1, 4000 );
+	camera = new THREE.PerspectiveCamera( 45, canvasRatio, 1, 16000 );
 	// Moving the camera with the mouse is simple enough - so this is provided. However, note that by default,
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-	camera.position.set( 25, planetRadius, 25);
-	cameraControls.target.set(0, planetRadius, 0);
+	camera.position.set( 600, planetRadius, 1100);
+	cameraControls.target.set(500, planetRadius, 1000);
 	cameraControls.minDistance = cameraMinDistance;
 	cameraControls.maxDistance = cameraMaxDistance;
 }
