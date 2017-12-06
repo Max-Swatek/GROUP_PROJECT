@@ -1,4 +1,6 @@
 //Planet simulator
+'user strict'
+
 class Planet{
 	constructor(base, atmosphere){
 		this.base = base;
@@ -22,7 +24,15 @@ var skybox;
 
 var planets = [];
 var current = 0;//which planet am i looking at
-'use strict';
+
+//Texture loader
+var textureLoader = new THREE.TextureLoader();
+
+//Lens flare
+var textureFlare0 = textureLoader.load( "/Textures/lensflare/lensflare0.png" );
+var textureFlare2 = textureLoader.load( "/Textures/lensflare/lensflare2.png" );
+var textureFlare3 = textureLoader.load( "/Textures/lensflare/lensflare3.png" );
+
 Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
 function fillScene() {
@@ -31,20 +41,8 @@ function fillScene() {
 	//scene.setGravity(new THREE.Vector3( 0,-200, 0 ));
 	//scene.add( new THREE.AmbientLight( 0x222222, lightConstant/5 ) );
 
-	//Sunlight
-	var light = new THREE.PointLight( 0xffffff, lightConstant*2, 3000, 2 );
-	light.position.set( 500, planetRadius, 1000 );
-	light.castShadow = true;
-    light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 2500;
-    light.shadow.camera.left = -1000;
-    light.shadow.camera.right = 1000;
-    light.shadow.camera.top = 1000;
-    light.shadow.camera.bottom = -1000;
 
-	scene.add( light );
-
-
+	addLight(.8, 1, 1, 500, planetRadius, 100);
 
 	//Visualize the Axes - Useful for debugging, can turn this off if desired
  	//A simple grid floor, the variables hint at the plane that this lies within
@@ -63,6 +61,43 @@ function fillScene() {
 	planets.push(earth2);
 	scene.add(planets[1].base);
 }
+
+const addLight = (h, s, l, x, y, z ) => {
+
+	var light = new THREE.PointLight( 0xffffff, lightConstant*2, 3000, 2 );
+	light.color.setHSL( h, s, l)
+	light.position.set( x, y, z );
+	// light.castShadow = true;
+    // light.shadow.camera.near = 0.1;
+    // light.shadow.camera.far = 2500;
+    // light.shadow.camera.left = -1000;
+    // light.shadow.camera.right = 1000;
+    // light.shadow.camera.top = 1000;
+    // light.shadow.camera.bottom = -1000;
+
+	scene.add( light );
+
+	//light helper.  Edit out later
+	// const plh = new THREE.PointLightHelper(light);
+	//scene.add(plh);
+
+	var flareColor = new THREE.Color( 0xffffff );
+	flareColor.setHSL( h, s, l + 0.5 );
+
+	const lensFlare = new THREE.LensFlare( textureFlare0, 1500, 0.0, THREE.AdditiveBlending, flareColor);
+	lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+	lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+	lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+	lensFlare.add( textureFlare3, 60, 0.6, THREE.AdditiveBlending );
+	lensFlare.add( textureFlare3, 70, 0.7, THREE.AdditiveBlending );
+	lensFlare.add( textureFlare3, 120, 0.9, THREE.AdditiveBlending );
+	lensFlare.add( textureFlare3, 70, 1.0, THREE.AdditiveBlending );
+
+	lensFlare.position.copy( light.position );
+
+	scene.add( lensFlare );
+}
+
 function drawSkyBox(){
 	var geometry = new THREE.CubeGeometry(4000,4000,4000);
 
@@ -128,12 +163,13 @@ function drawDeathstar(){
 }
 
 function init() {
-	var canvasWidth = 1280;
-	var canvasHeight = 720;
+	const canvasWidth = window.innerWidth;
+	const canvasHeight = window.innerHeight;
+
 	var canvasRatio = canvasWidth / canvasHeight;
 
 	// Set up a renderer. This will allow WebGL to make your scene appear
-	renderer = new THREE.WebGLRenderer( { antialias: true } );
+	renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
 
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
