@@ -102,12 +102,12 @@ function drawSkyBox(){
 	var geometry = new THREE.CubeGeometry(10000,10000,10000);
 
 	var sides = [
-		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/posx.jpg"), side: THREE.DoubleSide}),
-		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/negx.jpg"), side: THREE.DoubleSide}),
-		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/posy.jpg"), side: THREE.DoubleSide}),
-		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/negy.jpg"), side: THREE.DoubleSide}),
-		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/posz.jpg"), side: THREE.DoubleSide}),
-		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/negz.jpg"), side: THREE.DoubleSide})
+		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/skybox_right1.jpg"), side: THREE.DoubleSide}),
+		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/skybox_left2.jpg"), side: THREE.DoubleSide}),
+		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/skybox_top3.jpg"), side: THREE.DoubleSide}),
+		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/skybox_bottom4.jpg"), side: THREE.DoubleSide}),
+		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/skybox_front5.jpg"), side: THREE.DoubleSide}),
+		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/skybox_back6.jpg"), side: THREE.DoubleSide})
 	];
 	var material = new THREE.MeshFaceMaterial( sides );
 
