@@ -2,9 +2,10 @@
 'user strict'
 
 class Planet{
-	constructor(base, atmosphere){
+	constructor(base, atmosphere, rings){
 		this.base = base;
 		this.atmosphere = atmosphere;
+		this.rings = rings;
 	}
 }
 var camera, scene, renderer;
@@ -54,7 +55,7 @@ function fillScene() {
  // scene.add(axes);
 	drawSkyBox();
 	//drawEarth();
-	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'earth', atmosphere:true });
+	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
 	planets.push(earth1);
 	scene.add(planets[0].base);
 	var earth2 = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'earth', atmosphere:true });
@@ -115,7 +116,7 @@ function drawSkyBox(){
 	scene.add(skybox);
 }
 
-function drawPlanet({x,y,z, radius, folder, atmosphere}) {
+function drawPlanet({x,y,z, radius, folder, atmosphere, rings}) {
 	var planetGeometry = new THREE.SphereGeometry(radius,32,32);
 	var planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
@@ -128,13 +129,19 @@ function drawPlanet({x,y,z, radius, folder, atmosphere}) {
 	planetMesh.position.x = x;
 	planetMesh.position.y = y+radius;
 	planetMesh.position.z = z;
+
+	let cloudMesh = null;
+	let ringMesh = null;
 	if(atmosphere){
-		cloudMesh = makeAtmosphere({radius:radius*1.015, folder:folder});
+		cloudMesh = makeAtmosphere({radius:radius*1.015, folder});
 		planetMesh.add(cloudMesh);
-		var planet = new Planet(planetMesh, cloudMesh);
-	}else{
-		var planet = new Planet(planetMesh, null);
 	}
+
+	if (rings) {
+		ringMesh = makeRings({ radius, folder });
+		planetMesh.add(ringMesh);
+	}
+	const planet = new Planet(planetMesh, cloudMesh, ringMesh);
 
 	//scene.add(planetMesh);
 	//var planet = new Planet(planetMesh, cloudMesh);
@@ -156,10 +163,16 @@ function makeAtmosphere({radius, folder}){
 	return new THREE.Mesh(geometry, material);
 }
 
-function drawDeathstar(){
-	var dSGeometry = new THREE.SphereGeometry(planetRadius/4,32,32);
-	var dSMaterial = new THREE.MeshPhongMaterial();
+const makeRings = ({ radius, folder }) => {
+	const segments = 100;
+	const geometry = new THREE.XRingGeometry(1.2 * radius, 2 * radius, 2 * segments, 5, 0, Math.PI * 2);
+	const material = new THREE.MeshBasicMaterial ();
+	material.map = new THREE.TextureLoader().load(`/Textures/${folder}/rings.png`)
+	material.transparent = true;
+	material.opacity = 0.6;
+	material.side = THREE.DoubleSide;
 
+	return new THREE.Mesh(geometry, material);
 }
 
 function init() {
