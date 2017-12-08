@@ -8,6 +8,8 @@ class Planet{
 		this.rings = rings;
 	}
 }
+var frameNum = 0;
+
 var camera, scene, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
@@ -34,33 +36,39 @@ var textureFlare0 = textureLoader.load( "/Textures/lensflare/lensflare0.png" );
 var textureFlare2 = textureLoader.load( "/Textures/lensflare/lensflare2.png" );
 var textureFlare3 = textureLoader.load( "/Textures/lensflare/lensflare3.png" );
 
+//particle effect
+var particleGeometry;
+const minX = 250;
+const maxX = 750;
+const minY = -200;
+const maxY = 200;
+const minZ = 750;
+const maxZ = 1250;
+
 Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
 function fillScene() {
 
 	scene = new Physijs.Scene();
-	//scene.setGravity(new THREE.Vector3( 0,-200, 0 ));
-	//scene.add( new THREE.AmbientLight( 0x222222, lightConstant/5 ) );
 
-
+	//the sun
 	addLight(.8, 1, 1, 0, 0, 0);
 
-	//Visualize the Axes - Useful for debugging, can turn this off if desired
- 	//A simple grid floor, the variables hint at the plane that this lies within
-	// Later on we might install new flooring.
- // 	var gridXZ = new THREE.GridHelper(2000, 100, new THREE.Color(0xCCCCCC), new THREE.Color(0x888888));
- // 	//scene.add(gridXZ);
-	// var axes = new THREE.AxisHelper(150);
- // axes.position.y = 1;
- // scene.add(axes);
+	//The sky
 	drawSkyBox();
-	//drawEarth();
+
+	//The planets
 	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
 	planets.push(earth1);
-	scene.add(planets[0].base);
-	var earth2 = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'earth', atmosphere:true });
-	planets.push(earth2);
-	scene.add(planets[1].base);
+	var ringly = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'earth', atmosphere:true });
+	planets.push(ringly);
+
+	for (const i in planets) {
+		scene.add(planets[i].base);
+	}
+
+	//the dust
+	drawParticles();
 }
 
 const addLight = (h, s, l, x, y, z ) => {
@@ -78,10 +86,7 @@ const addLight = (h, s, l, x, y, z ) => {
 
 	scene.add( light );
 
-	//light helper.  Edit out later
-	// const plh = new THREE.PointLightHelper(light);
-	//scene.add(plh);
-
+	//Lens flare
 	var flareColor = new THREE.Color( 0xffffff );
 	flareColor.setHSL( h, s, l + 0.5 );
 
@@ -132,24 +137,24 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings}) {
 
 	let cloudMesh = null;
 	let ringMesh = null;
+
+	//If there's an atomasphere, add one!
 	if(atmosphere){
 		cloudMesh = makeAtmosphere({radius:radius*1.015, folder});
 		planetMesh.add(cloudMesh);
 	}
 
+	//If there's rings, add them
 	if (rings) {
 		ringMesh = makeRings({ radius, folder });
 		planetMesh.add(ringMesh);
 	}
-	const planet = new Planet(planetMesh, cloudMesh, ringMesh);
 
-	//scene.add(planetMesh);
-	//var planet = new Planet(planetMesh, cloudMesh);
-	//return planetMesh;
+	const planet = new Planet(planetMesh, cloudMesh, ringMesh);
 	return planet;
 }
 
-function makeAtmosphere({radius, folder}){
+const makeAtmosphere = ({radius, folder}) => {
 
 	var geometry = new THREE.SphereGeometry(radius, 32, 32);
 	var material = new THREE.MeshPhongMaterial();
@@ -166,13 +171,69 @@ function makeAtmosphere({radius, folder}){
 const makeRings = ({ radius, folder }) => {
 	const segments = 100;
 	const geometry = new THREE.XRingGeometry(1.2 * radius, 2 * radius, 2 * segments, 5, 0, Math.PI * 2);
+
 	const material = new THREE.MeshBasicMaterial ();
-	material.map = new THREE.TextureLoader().load(`/Textures/${folder}/rings.png`)
+	material.map = new THREE.TextureLoader().load(`/Textures/${folder}/rings.png`);
 	material.transparent = true;
 	material.opacity = 0.6;
 	material.side = THREE.DoubleSide;
 
 	return new THREE.Mesh(geometry, material);
+}
+
+const drawParticles = () => {
+	const numParticles = 5000;
+
+	const particleMap = textureLoader.load( "/Textures/particles/ParticleTexture.png" );
+
+	const colors = [];
+
+	particleGeometry = new THREE.Geometry();
+
+	let x, y, z;
+	for (let i = 0; i < numParticles; i++) {
+		x = (Math.random() * (maxX - minX)) + minX;
+		y = (Math.random() * (maxY - minY)) + minY;
+		z = (Math.random() * (maxZ - minZ)) + minZ;
+
+		const particle = new THREE.Vector3(x, y, z);
+		particle.dX = 0;
+		if ((x % 3) > 2) {
+			particle.dX = 0.025;
+		}
+		else if ((x % 3) > 1) {
+			particle.dX = -0.025;
+		}
+
+		particle.dY = 0;
+		if ((y % 3) > 2) {
+			particle.dY = 0.025;
+		}
+		else if ((y % 3) > 1) {
+			particle.dY = -0.025;
+		}
+
+		particle.dZ = 0;
+		if ((z % 3) > 2) {
+			particle.dZ = 0.025;
+		}
+		else if ((z % 3) > 1 || (particle.dX === 0 && particle.dY === 0)) {
+			particle.dZ = -0.025;
+		}
+		particleGeometry.vertices.push(particle);
+	}
+
+
+	const material = new THREE.PointsMaterial({
+		size: 1,
+		map: particleMap,
+		transparent: true
+	});
+
+	material.color.setHSL( 1.0, 0.2, 0.7 );
+
+	const points = new THREE.Points(particleGeometry, material);
+	scene.add(points);
 }
 
 function init() {
@@ -214,19 +275,36 @@ function animate() {
 	window.requestAnimationFrame(animate);
 	render();
 }
+
 function render() {
 	scene.simulate();
 	var delta = clock.getDelta();
+	frameNum = (frameNum + 1) % 60
 	cameraControls.update(delta);
 	renderer.render(scene, camera);
 	skybox.position = camera.position;
 	TWEEN.update();
 
-		//rotate planet
+	//rotate planet
+  planets[current].base.rotation.y  += 1/32 * delta;
+  planets[current].atmosphere.rotation.y  += 1/16 * delta;
 
-  		planets[current].base.rotation.y  += 1/32 * delta;
-  		planets[current].atmosphere.rotation.y  += 1/16 * delta;
+	//only move particles every second frame because eficiency
+	if (frameNum % 2 === 0)
+	 moveParticles();
+}
 
+const moveParticles = () => {
+	particleGeometry.vertices.forEach((particle => {
+	 particle.add(new THREE.Vector3(particle.dX, particle.dY, particle.dZ));
+	 if (particle.x > maxX) particle.x = minX;
+	 if (particle.x < minX) particle.x = maxX;
+	 if (particle.y > maxY) particle.y = minY;
+	 if (particle.y < minY) particle.y = maxY;
+	 if (particle.z > maxZ) particle.z = minZ;
+	 if (particle.z < minZ) particle.z = maxZ;
+ }));
+ particleGeometry.verticesNeedUpdate = true;
 }
 
 function targetWorld(){
