@@ -38,12 +38,6 @@ var textureFlare3 = textureLoader.load( "/Textures/lensflare/lensflare3.png" );
 
 //particle effect
 var particleGeometry;
-const minX = 250;
-const maxX = 750;
-const minY = -200;
-const maxY = 200;
-const minZ = 750;
-const maxZ = 1250;
 
 Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
@@ -68,7 +62,8 @@ function fillScene() {
 	}
 
 	//the dust
-	drawParticles();
+	drawParticles({ minX: 250, maxX: 750, minY: -200, maxY: 200, minZ: 750, maxZ: 1250, numParticles: 5000 });
+
 }
 
 const addLight = (h, s, l, x, y, z ) => {
@@ -181,14 +176,16 @@ const makeRings = ({ radius, folder }) => {
 	return new THREE.Mesh(geometry, material);
 }
 
-const drawParticles = () => {
-	const numParticles = 5000;
-
+const drawParticles = ({ minX, maxX, minY, maxY, minZ, maxZ, numParticles }) => {
 	const particleMap = textureLoader.load( "/Textures/particles/ParticleTexture.png" );
 
-	const colors = [];
-
 	particleGeometry = new THREE.Geometry();
+	particleGeometry.minX = minX;
+	particleGeometry.minY = minY;
+	particleGeometry.minZ = minZ;
+	particleGeometry.maxX = maxX;
+	particleGeometry.maxY = maxY;
+	particleGeometry.maxZ = maxZ;
 
 	let x, y, z;
 	for (let i = 0; i < numParticles; i++) {
@@ -229,8 +226,6 @@ const drawParticles = () => {
 		map: particleMap,
 		transparent: true
 	});
-
-	material.color.setHSL( 1.0, 0.2, 0.7 );
 
 	const points = new THREE.Points(particleGeometry, material);
 	scene.add(points);
@@ -295,6 +290,7 @@ function render() {
 }
 
 const moveParticles = () => {
+	const { minX, maxX, minY, maxY, minZ, maxZ } = particleGeometry
 	particleGeometry.vertices.forEach((particle => {
 	 particle.add(new THREE.Vector3(particle.dX, particle.dY, particle.dZ));
 	 if (particle.x > maxX) particle.x = minX;
