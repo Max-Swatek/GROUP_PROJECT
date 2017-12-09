@@ -60,7 +60,7 @@ function fillScene() {
 	//The planets
 	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
 	planets.push(earth1);
-	var ringly = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'earth', atmosphere:true });
+	var ringly = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(ringly);
 
 	for (const i in planets) {
@@ -175,6 +175,8 @@ const makeRings = ({ radius, folder }) => {
 	const material = new THREE.MeshBasicMaterial ();
 	material.map = new THREE.TextureLoader().load(`/Textures/${folder}/rings.png`);
 	material.transparent = true;
+	material.bumpMap = new THREE.TextureLoader().load(`/Textures/${folder}/ringsBump.png`);
+	material.bumpScale = radius * 2;
 	material.opacity = 0.6;
 	material.side = THREE.DoubleSide;
 
