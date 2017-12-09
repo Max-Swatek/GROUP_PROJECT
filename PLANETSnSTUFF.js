@@ -45,8 +45,12 @@ const maxY = 200;
 const minZ = 750;
 const maxZ = 1250;
 
+//millenium falcon
+let mainShip;
+
 Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
+
 function fillScene() {
 
 	scene = new Physijs.Scene();
@@ -66,6 +70,9 @@ function fillScene() {
 	for (const i in planets) {
 		scene.add(planets[i].base);
 	}
+
+	//the falcon, of course
+	drawMainShip();
 
 	//the dust
 	drawParticles();
@@ -181,6 +188,20 @@ const makeRings = ({ radius, folder }) => {
 	return new THREE.Mesh(geometry, material);
 }
 
+const drawMainShip = () => {
+	new THREE.JSONLoader().load( '/Models/spaceship/falcon.json', (geometry, materials) => {
+        mainShip = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
+          mainShip.position.x =500;
+          mainShip.position.y =0;
+          mainShip.position.z =900;
+
+					mainShip.speed = 0.01;
+				mainShip.add(camera);
+        scene.add( mainShip );
+			});
+
+}
+
 const drawParticles = () => {
 	const numParticles = 5000;
 
@@ -257,10 +278,11 @@ function init() {
 	// Moving the camera with the mouse is simple enough - so this is provided. However, note that by default,
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-	camera.position.set( 600, planetRadius, 1100);
-	cameraControls.target.set(500, planetRadius, 1000);
-	cameraControls.minDistance = cameraMinDistance;
-	cameraControls.maxDistance = cameraMaxDistance;
+	camera.position.set( 10, 12, 45);
+	//camera.position.set( 600, planetRadius, 1100);
+	//cameraControls.target.set(500, planetRadius, 1000);
+	//cameraControls.minDistance = cameraMinDistance;
+	//cameraControls.maxDistance = cameraMaxDistance;
 }
 
 function addToDOM() {
@@ -282,7 +304,9 @@ function render() {
 	frameNum = (frameNum + 1) % 60
 	cameraControls.update(delta);
 	renderer.render(scene, camera);
-	skybox.position = camera.position;
+	if (skybox) {
+		skybox.position = camera.position;
+	}
 	TWEEN.update();
 
 	//rotate planet
@@ -290,21 +314,38 @@ function render() {
   planets[current].atmosphere.rotation.y  += 1/16 * delta;
 
 	//only move particles every second frame because eficiency
-	if (frameNum % 2 === 0)
-	 moveParticles();
+	if (frameNum % 2 === 0) {
+//	 moveParticles();
+ }
+	if (mainShip) {
+	 moveMainShip();
+	}
 }
 
 const moveParticles = () => {
-	particleGeometry.vertices.forEach((particle => {
-	 particle.add(new THREE.Vector3(particle.dX, particle.dY, particle.dZ));
-	 if (particle.x > maxX) particle.x = minX;
-	 if (particle.x < minX) particle.x = maxX;
-	 if (particle.y > maxY) particle.y = minY;
-	 if (particle.y < minY) particle.y = maxY;
-	 if (particle.z > maxZ) particle.z = minZ;
-	 if (particle.z < minZ) particle.z = maxZ;
- }));
- particleGeometry.verticesNeedUpdate = true;
+	if (particleGeometry && particleGeometry.vertices) {
+		particleGeometry.vertices.forEach((particle => {
+		 particle.add(new THREE.Vector3(particle.dX, particle.dY, particle.dZ));
+		 if (particle.x > maxX) particle.x = minX;
+		 if (particle.x < minX) particle.x = maxX;
+		 if (particle.y > maxY) particle.y = minY;
+		 if (particle.y < minY) particle.y = maxY;
+		 if (particle.z > maxZ) particle.z = minZ;
+		 if (particle.z < minZ) particle.z = maxZ;
+	 }));
+	 particleGeometry.verticesNeedUpdate = true;
+	}
+}
+
+const moveMainShip = () => {
+	// var matrix = new THREE.Matrix4();
+	// matrix.extractRotation( mainShip.matrix );
+
+	// var direction = new THREE.Vector3( 0, 0, 1 );
+	// matrix.multiplyVector3( direction );
+	// mainShip.position.add(mainShip.speed);
+
+	mainShip.translateZ(-mainShip.speed);
 }
 
 function targetWorld(){
@@ -316,8 +357,8 @@ function targetWorld(){
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
         case 32:
-            targetWorld();
-        break;
+          targetWorld();
+        	break;
     }
 
 
