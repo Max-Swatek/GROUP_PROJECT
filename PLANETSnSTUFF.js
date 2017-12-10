@@ -2,10 +2,12 @@
 'user strict'
 
 class Planet{
-	constructor(base, atmosphere, rings){
+	constructor(base, atmosphere, rings, tether, moons){
+		this.tether = tether;
 		this.base = base;
 		this.atmosphere = atmosphere;
 		this.rings = rings;
+		this.moons = moons;
 	}
 }
 var frameNum = 0;
@@ -52,13 +54,13 @@ function fillScene() {
 	drawSkyBox();
 
 	//The planets
-	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
+	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true, numMoons:1 });
 	planets.push(earth1);
 	var ringly = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'earth', atmosphere:true });
 	planets.push(ringly);
 
 	for (const i in planets) {
-		scene.add(planets[i].base);
+		scene.add(planets[i].tether);
 	}
 
 	//the dust
@@ -116,7 +118,7 @@ function drawSkyBox(){
 	scene.add(skybox);
 }
 
-function drawPlanet({x,y,z, radius, folder, atmosphere, rings}) {
+function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons, tether}) {
 	var planetGeometry = new THREE.SphereGeometry(radius,32,32);
 	var planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
@@ -133,6 +135,7 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings}) {
 	let cloudMesh = null;
 	let ringMesh = null;
 
+
 	//If there's an atomasphere, add one!
 	if(atmosphere){
 		cloudMesh = makeAtmosphere({radius:radius*1.015, folder});
@@ -144,8 +147,30 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings}) {
 		ringMesh = makeRings({ radius, folder });
 		planetMesh.add(ringMesh);
 	}
+	if(!tether){//default to sun
+		var tether = new THREE.Mesh(new THREE.SphereGeometry(radius/4,5,5));
+		tether.position.x = 0;
+		tether.position.y = 0;
+		tether.position.z = 0;
+	}
+	let moons =null;
+	// var moons = [];
+	// for(var i=numMoons; i>0;i--){
+	// 	moons.push(drawPlanet({
+	// 		x:radius*2,
+	// 		y:0,
+	// 		z:0,
+	// 		radius:planetRadius/2,
+	// 		folder:'earth',
+	// 		atmosphere:false,
+	// 		rings:false,
+	// 		numMoons:0,
+	// 		tether:planetMesh
+	// 	}));
+	// }
 
-	const planet = new Planet(planetMesh, cloudMesh, ringMesh);
+	tether.add(planetMesh);
+	const planet = new Planet(planetMesh, cloudMesh, ringMesh, tether, moons);
 	return planet;
 }
 
@@ -276,14 +301,15 @@ function render() {
 	var delta = clock.getDelta();
 	frameNum = (frameNum + 1) % 60
 	cameraControls.update(delta);
+	//cameraControls.target.set(planets[current].base.position.x, planets[current].base.position.y, planets[current].base.position.z);
 	renderer.render(scene, camera);
-	skybox.position = camera.position;
-	TWEEN.update();
+	//skybox.position = camera.position;
+	//TWEEN.update();
 
 	//rotate planet
   planets[current].base.rotation.y  += 1/32 * delta;
   planets[current].atmosphere.rotation.y  += 1/16 * delta;
-
+	//planets[current].tether.rotation.y  += 1/512 * delta;
 	//only move particles every second frame because eficiency
 	if (frameNum % 2 === 0)
 	 moveParticles();
@@ -322,7 +348,7 @@ document.onkeydown = function move(e) {
 try {
   	init();
   	fillScene();
- 	addToDOM();
+ 		addToDOM();
   	animate();
 
 } catch(error) {
