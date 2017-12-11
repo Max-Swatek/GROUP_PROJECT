@@ -2,10 +2,21 @@
 'user strict'
 
 class Planet{
-	constructor(base, atmosphere, rings){
+	constructor({base, atmosphere, rings}){
 		this.base = base;
 		this.atmosphere = atmosphere;
 		this.rings = rings;
+		// this.moons = [];
+	}
+	addMoon(moon){
+		// moons.push(moon);
+	}
+	animate(delta){
+		this.base.rotation.y  += 1/32 * delta;
+		this.atmosphere.rotation.y  += 1/16 * delta;
+		// for(var i=0; i<moons.length; i++){
+		// 	moons[i].animate(delta);
+		// }
 	}
 }
 var frameNum = 0;
@@ -58,10 +69,10 @@ function fillScene() {
 	drawSkyBox();
 
 	//The planets
-	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
-	planets.push(earth1);
-	var ringly = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
+	var ringly = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
 	planets.push(ringly);
+	var got = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
+	planets.push(got);
 
 	for (const i in planets) {
 		scene.add(planets[i].base);
@@ -150,7 +161,7 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings}) {
 		planetMesh.add(ringMesh);
 	}
 
-	const planet = new Planet(planetMesh, cloudMesh, ringMesh);
+	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh});
 	return planet;
 }
 
@@ -288,9 +299,7 @@ function render() {
 	TWEEN.update();
 
 	//rotate planet
-  planets[current].base.rotation.y  += 1/32 * delta;
-  planets[current].atmosphere.rotation.y  += 1/16 * delta;
-
+	planets[current].animate(delta);
 	//only move particles every second frame because eficiency
 	if (frameNum % 2 === 0)
 	 moveParticles();
