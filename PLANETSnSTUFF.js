@@ -13,7 +13,9 @@ class Planet{
 	}
 	animate(delta){
 		this.base.rotation.y  += 1/32 * delta;
-		this.atmosphere.rotation.y  += 1/16 * delta;
+		if(this.atmosphere){
+			this.atmosphere.rotation.y  += 1/16 * delta;
+		}
 		// for(var i=0; i<moons.length; i++){
 		// 	moons[i].animate(delta);
 		// }
@@ -71,15 +73,16 @@ function fillScene() {
 	//The planets
 	var ringly = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
 	planets.push(ringly);
-<<<<<<< HEAD
+
 	var got = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(got);
-=======
+
 	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius, folder:'gasGiant1', atmosphere:true, rings:true });
 	planets.push(gasGiant);
+
 	var moon = drawPlanet({ x:500, y:0, z:1050, radius:planetRadius, folder:'moon'});
 	planets.push(moon);
->>>>>>> origin/Sarah-Shenanigans
+
 
 	for (const i in planets) {
 		scene.add(planets[i].base);
@@ -305,6 +308,7 @@ function render() {
 	skybox.position = camera.position;
 	TWEEN.update();
 
+	skybox.rotation.y  += 1/64 * delta;
 	//rotate planet
 	planets[current].animate(delta);
 	//only move particles every second frame because eficiency
