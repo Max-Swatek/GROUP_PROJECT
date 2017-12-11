@@ -62,6 +62,10 @@ function fillScene() {
 	planets.push(earth1);
 	var ringly = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(ringly);
+	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius, folder:'gasGiant1', atmosphere:true, rings:true });
+	planets.push(gasGiant);
+	var moon = drawPlanet({ x:500, y:0, z:1050, radius:planetRadius, folder:'moon'});
+	planets.push(moon);
 
 	for (const i in planets) {
 		scene.add(planets[i].base);
