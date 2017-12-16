@@ -10,9 +10,12 @@ class Planet{
 }
 var frameNum = 0;
 
-var camera, scene, renderer;
+var camera, scene, cameraHUD, sceneHUD, hudBitmap, hudTexture, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
+
+const width = window.innerWidth;
+const height = window.innerHeight
 
 var planetMesh;
 var cloudMesh;
@@ -195,7 +198,12 @@ const drawMainShip = () => {
           mainShip.position.y =0;
           mainShip.position.z =900;
 
-					mainShip.speed = 0.01;
+					mainShip.maxSpeed = 2;
+					mainShip.minSpeed = 0;
+					mainShip.speedIntervals = 6;
+
+					mainShip.speed = mainShip.minSpeed + 1;
+
 				mainShip.add(camera);
         scene.add( mainShip );
 			});
@@ -258,18 +266,18 @@ const drawParticles = () => {
 }
 
 function init() {
-	const canvasWidth = window.innerWidth;
-	const canvasHeight = window.innerHeight;
-
-	var canvasRatio = canvasWidth / canvasHeight;
+	var canvasRatio = width / height;
 
 	// Set up a renderer. This will allow WebGL to make your scene appear
 	renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
 
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-	renderer.setSize(canvasWidth, canvasHeight);
+	renderer.setSize(width, height);
 	renderer.setClearColor( 0xAAAAAA, 1.0 );
+	renderer.autoClear = false;
+
+	document.body.appendChild(renderer.domElement);
 
 	// You also want a camera. The camera has a default position, but you most likely want to change this.
 	// You'll also want to allow a viewpoint that is reminiscent of using the machine as described in the pdf
@@ -285,18 +293,98 @@ function init() {
 	//cameraControls.maxDistance = cameraMaxDistance;
 }
 
-function addToDOM() {
-    var canvas = document.getElementById('canvas');
-    canvas.appendChild(renderer.domElement);
+
+/*
+**
+**
+** HUD
+**
+**
+*/
+	const initHUD = () => {
+		var hudCanvas = document.createElement('canvas');
+
+	  // Again, set dimensions to fit the screen.
+	  hudCanvas.width = width;
+	  hudCanvas.height = height;
+
+	  // Get 2D context and draw something supercool.
+
+	  hudBitmap = hudCanvas.getContext('2d');
+		drawHUD();
+
+	  // Create the camera and set the viewport to match the screen dimensions.
+	  cameraHUD = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0, 30 );
+
+	  // Create also a custom scene for HUD.
+	  sceneHUD = new THREE.Scene();
+
+		// Create texture from rendered graphics.
+		hudTexture = new THREE.Texture(hudCanvas)
+		hudTexture.needsUpdate = true;
+
+	  // Create HUD material.
+
+		increase = Math.PI * 2 / 100
+	  var material = new THREE.MeshBasicMaterial( {map: hudTexture} );
+	  material.transparent = true;
+
+	  // Create plane to render the HUD. This plane fill the whole screen.
+	  var planeGeometry = new THREE.PlaneGeometry( width, height );
+	  var plane = new THREE.Mesh( planeGeometry, material );
+	  sceneHUD.add( plane );
+
 }
 
-	// This is a browser callback for repainting
-	// Since you might change view, or move things
-	// We cant to update what appears
+const drawHUD = () => {
+	//assumes a max of 6 speedbars
+	hudBitmap.clearRect(0, 0, width, height);
+
+	hudBitmap.font = "Normal 30px Arial";
+	hudBitmap.fillStyle = "rgba(245,245,245,0.75)";
+	hudBitmap.fillText('Speed:', 20, height - 30);
+
+	let numBars = 1;
+	if (mainShip) numBars = mainShip.speed;
+
+	for (let i = 0; i < numBars; i++) {
+		let color = '#45F442';
+		if (i === 1) color = '#ADF442';
+		if (i ===2) color = '#F4F442';
+		if (i === 3) color = '#F4D142';
+		if (i === 4) color = '#F48042';
+		if (i === 5) color = '#F24135';
+
+		hudBitmap.beginPath();
+		hudBitmap.rect(125 + (i * 15), height-53, 10, 25);
+		hudBitmap.fillStyle = color;
+		hudBitmap.fill();
+	}
+
+	if (hudTexture) hudTexture.needsUpdate = true;
+
+}
+
+/*
+**
+**
+** End HUD
+**
+**
+*/
+
+
 function animate() {
 	window.requestAnimationFrame(animate);
+
+	// // Update HUD graphics.
+  // 	hudBitmap.clearRect(0, 0, width, height);
+  //   hudBitmap.fillText("RAD [x:", width / 2, height / 2); //+(cube.rotation.x % (2 * Math.PI)).toFixed(1)+", y:"+(cube.rotation.y % (2 * Math.PI)).toFixed(1)+", z:"+(cube.rotation.z % (2 * Math.PI)).toFixed(1)+"]" , width / 2, height / 2);
+  //   hudTexture.needsUpdate = true;
+
 	render();
 }
+
 
 function render() {
 	scene.simulate();
@@ -304,6 +392,8 @@ function render() {
 	frameNum = (frameNum + 1) % 60
 	cameraControls.update(delta);
 	renderer.render(scene, camera);
+	renderer.render(sceneHUD, cameraHUD);
+
 	if (skybox) {
 		skybox.position = camera.position;
 	}
@@ -315,7 +405,7 @@ function render() {
 
 	//only move particles every second frame because eficiency
 	if (frameNum % 2 === 0) {
-//	 moveParticles();
+	 moveParticles();
  }
 	if (mainShip) {
 	 moveMainShip();
@@ -338,14 +428,23 @@ const moveParticles = () => {
 }
 
 const moveMainShip = () => {
-	// var matrix = new THREE.Matrix4();
-	// matrix.extractRotation( mainShip.matrix );
+	if (mainShip.speed > mainShip.minSpeed) {
+		mainShip.translateZ(-((mainShip.speed * (mainShip.maxSpeed - mainShip.minSpeed)) + mainShip.minSpeed));
+	}
+}
 
-	// var direction = new THREE.Vector3( 0, 0, 1 );
-	// matrix.multiplyVector3( direction );
-	// mainShip.position.add(mainShip.speed);
+const speedUpShip = () => {
+	if (mainShip && mainShip.speed < mainShip.speedIntervals) {
+		mainShip.speed ++;
+		drawHUD();
+	}
+}
 
-	mainShip.translateZ(-mainShip.speed);
+const slowDownShip = () => {
+	if (mainShip && (mainShip.speed / (mainShip.maxSpeed - mainShip.minSpeed)) > mainShip.minSpeed) {
+		mainShip.speed --;
+		drawHUD();
+	}
 }
 
 function targetWorld(){
@@ -356,18 +455,24 @@ function targetWorld(){
 }
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
-        case 32:
+        case 32: //space bar switches view
           targetWorld();
         	break;
+
+				case 16: //shift speeds up ship
+					speedUpShip();
+					break;
+
+				case 17: //control slows down ship
+					slowDownShip();
+					break;
     }
-
-
 };
 
 try {
   	init();
+		initHUD();
   	fillScene();
- 	addToDOM();
   	animate();
 
 } catch(error) {
