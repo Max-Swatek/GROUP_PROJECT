@@ -2,15 +2,13 @@
 'user strict'
 
 class Planet{
-	constructor({base, atmosphere, rings}){
+	constructor({base, atmosphere, rings, moons}){
 		this.base = base;
 		this.atmosphere = atmosphere;
 		this.rings = rings;
-		// this.moons = [];
+		this.moons = moons;
 	}
-	addMoon(moon){
-		// moons.push(moon);
-	}
+
 	animate(delta){
 		this.base.rotation.y  += 1/32 * delta;
 		if(this.atmosphere){
@@ -26,9 +24,6 @@ var frameNum = 0;
 var camera, scene, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
-
-var planetMesh;
-var cloudMesh;
 
 var lightConstant = 1.5;
 var planetRadius = 1;
@@ -71,7 +66,7 @@ function fillScene() {
 	var got = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(got);
 
-	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius, folder:'gasGiant1', atmosphere:true, rings:true });
+	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius*2, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:1 });
 	planets.push(gasGiant);
 
 	var moon = drawPlanet({ x:500, y:0, z:1050, radius:planetRadius, folder:'moon'});
@@ -138,22 +133,22 @@ function drawSkyBox(){
 }
 
 function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons, tether}) {
-	var planetGeometry = new THREE.SphereGeometry(radius,32,32);
-	var planetMaterial = new THREE.MeshPhongMaterial();
+	let planetGeometry = new THREE.SphereGeometry(radius,32,32);
+	let planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
 	planetMaterial.bumpMap = new THREE.TextureLoader().load(`/Textures/${folder}/bump.jpg`);
 	planetMaterial.bumpScale = radius;
 	planetMaterial.specularMap = new THREE.TextureLoader().load(`/Textures/${folder}/spec.jpg`);
 	planetMaterial.specular = new THREE.Color('grey');
 
-	planetMesh = new THREE.Mesh(planetGeometry,planetMaterial);
+	let planetMesh = new THREE.Mesh(planetGeometry,planetMaterial);
 	planetMesh.position.x = x;
 	planetMesh.position.y = y+radius;
 	planetMesh.position.z = z;
 
 	let cloudMesh = null;
 	let ringMesh = null;
-
+	let moons = null;
 
 	//If there's an atomasphere, add one!
 	if(atmosphere){
@@ -167,7 +162,17 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons, tether}
 		planetMesh.add(ringMesh);
 	}
 
-	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh});
+	//If theres an amount of moons requiered, add them
+	if(numMoons){
+		moons = [];
+		for(let i=numMoons; i>0; i--){
+			const moon = drawPlanet({ x:radius*3, y:0, z:0, radius:radius/4, folder:'moon'});
+			planetMesh.add(moon.base);
+			moons.push(moon);
+		}
+	}
+
+	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh, moons:moons});
 	return planet;
 }
 
@@ -305,7 +310,7 @@ function render() {
 	//skybox.position = camera.position;
 	//TWEEN.update();
 
-	skybox.rotation.y  += 1/64 * delta;
+	skybox.rotation.y  -= 1/64 * delta;//faking orbits
 	//rotate planet
 	planets[current].animate(delta);
 	//only move particles every second frame because eficiency
