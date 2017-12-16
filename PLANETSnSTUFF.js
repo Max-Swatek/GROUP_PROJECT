@@ -2,18 +2,21 @@
 'user strict'
 
 class Planet{
-	constructor({base, atmosphere, rings, moons}){
+	constructor({base, atmosphere, rings, moons, tether}){
 		this.base = base;
 		this.atmosphere = atmosphere;
 		this.rings = rings;
 		this.moons = moons;
+		this.tether = tether;
 	}
 
 	animate(delta){
+		this.tether.rotation.y += 1/64 * delta;
 		this.base.rotation.y  += 1/32 * delta;
 		if(this.atmosphere){
 			this.atmosphere.rotation.y  += 1/16 * delta;
 		}
+
 		// for(var i=0; i<moons.length; i++){
 		// 	moons[i].animate(delta);
 		// }
@@ -60,21 +63,14 @@ function fillScene() {
 	drawSkyBox();
 
 	//The planets
-	var ringly = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
-	planets.push(ringly);
-
 	var got = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(got);
 
-	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius*2, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:1 });
-	planets.push(gasGiant);
-
-	var moon = drawPlanet({ x:500, y:0, z:1050, radius:planetRadius, folder:'moon'});
-	planets.push(moon);
-
+	var Ringly = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius*2, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:1 });
+	planets.push(Ringly);
 
 	for (const i in planets) {
-		scene.add(planets[i].base);
+		scene.add(planets[i].tether);
 	}
 
 	//the dust
@@ -132,7 +128,7 @@ function drawSkyBox(){
 	scene.add(skybox);
 }
 
-function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons, tether}) {
+function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 	let planetGeometry = new THREE.SphereGeometry(radius,32,32);
 	let planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
@@ -167,15 +163,27 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons, tether}
 		moons = [];
 		for(let i=numMoons; i>0; i--){
 			const moon = drawPlanet({ x:radius*3, y:0, z:0, radius:radius/4, folder:'moon'});
-			planetMesh.add(moon.base);
+			planetMesh.add(moon.tether);
+			//planetMesh.add(moon.base);
 			moons.push(moon);
 		}
 	}
-
-	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh, moons:moons});
+	let tether = makeTether();
+	//tether.add(planetMesh);
+	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh, moons:moons, tether:tether});
+	planet.tether.add(planet.base);
 	return planet;
 }
-
+function makeTether(){
+	let tether = new THREE.Mesh(
+		new THREE.SphereGeometry(planetRadius/10, 5, 5),
+		textureLoader.load( "/Textures/particles/ParticleTexture.png" )
+	);
+	tether.position.x = 0;
+	tether.position.y = 0;
+	tether.position.z = 0;
+	return tether;
+}
 const makeAtmosphere = ({radius, folder}) => {
 
 	var geometry = new THREE.SphereGeometry(radius, 32, 32);
@@ -281,8 +289,7 @@ function init() {
 	// Moving the camera with the mouse is simple enough - so this is provided. However, note that by default,
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-	camera.position.set( 600, planetRadius, 1100);
-	cameraControls.target.set(500, planetRadius, 1000);
+	camera.position.set( planetRadius*5, 0, 0);
 	cameraControls.minDistance = cameraMinDistance;
 	cameraControls.maxDistance = cameraMaxDistance;
 }
@@ -335,7 +342,11 @@ const moveParticles = () => {
 function targetWorld(){
 	current += 1;
 	var index = current%planets.length
-	cameraControls.target.set(planets[index].base.position.x, planets[index].base.position.y, planets[index].base.position.z);
+	const planet = planets[index];
+	//scene.remove(planet.tether);
+	planets[index].base.add(camera);
+	//scene.add(planet.tether);
+	//cameraControls.target.set(planets[index].base.position.x, planets[index].base.position.y, planets[index].base.position.z);
 	current = index;
 }
 document.onkeydown = function move(e) {
