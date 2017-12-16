@@ -2,11 +2,8 @@
 'user strict'
 
 class Planet{
-<<<<<<< HEAD
-	constructor({base, atmosphere, rings, moons}){
-=======
+
 	constructor({base, atmosphere, rings, moons, tether}){
->>>>>>> origin/master
 		this.base = base;
 		this.atmosphere = atmosphere;
 		this.rings = rings;
@@ -25,16 +22,6 @@ class Planet{
 		// 	moons[i].animate(delta);
 		// }
 	}
-
-	animate(delta){
-		this.base.rotation.y  += 1/32 * delta;
-		if(this.atmosphere){
-			this.atmosphere.rotation.y  += 1/16 * delta;
-		}
-		// for(var i=0; i<moons.length; i++){
-		// 	moons[i].animate(delta);
-		// }
-	}
 }
 var frameNum = 0;
 
@@ -42,12 +29,6 @@ var camera, scene, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
 
-<<<<<<< HEAD
-//var planetMesh;
-// cloudMesh;
-
-=======
->>>>>>> origin/master
 var lightConstant = 1.5;
 var planetRadius = 1;
 
@@ -83,29 +64,15 @@ function fillScene() {
 	drawSkyBox();
 
 	//The planets
-<<<<<<< HEAD
-	var ringly = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
-	planets.push(ringly);
-=======
+
 	var got = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(got);
 
 	var Ringly = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius*2, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:1 });
 	planets.push(Ringly);
->>>>>>> origin/master
-
-	var got = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
-	planets.push(got);
-
-	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius*2, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:1 });
-	planets.push(gasGiant);
-
-	var moon = drawPlanet({ x:500, y:0, z:1050, radius:planetRadius, folder:'moon'});
-	planets.push(moon);
-
 
 	for (const i in planets) {
-		scene.add(planets[i].base);
+		scene.add(planets[i].tether);
 	}
 
 	//the dust
@@ -163,11 +130,7 @@ function drawSkyBox(){
 	scene.add(skybox);
 }
 
-<<<<<<< HEAD
-function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons, tether}) {
-=======
 function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
->>>>>>> origin/master
 	let planetGeometry = new THREE.SphereGeometry(radius,32,32);
 	let planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
@@ -201,17 +164,8 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 	if(numMoons){
 		moons = [];
 		for(let i=numMoons; i>0; i--){
-			const moon = drawPlanet({ x:radius*3, y:0, z:0, radius:radius/4, folder:'moon'});
-<<<<<<< HEAD
-			planetMesh.add(moon.base);
-			moons.push(moon);
-		}
-	}
-
-	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh, moons:moons});
-=======
+			let moon = drawPlanet({x:radius*3, y:0, z:0, radius:radius/4, folder:'moon'})
 			planetMesh.add(moon.tether);
-			//planetMesh.add(moon.base);
 			moons.push(moon);
 		}
 	}
@@ -219,7 +173,6 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 	//tether.add(planetMesh);
 	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh, moons:moons, tether:tether});
 	planet.tether.add(planet.base);
->>>>>>> origin/master
 	return planet;
 }
 function makeTether(){
