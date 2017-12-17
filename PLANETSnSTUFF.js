@@ -9,18 +9,21 @@ class Planet{
 		this.rings = rings;
 		this.moons = moons;
 		this.tether = tether;
+		this.orbit = 1/((base.position.x)/4);
 	}
 
 	animate(delta){
-		this.tether.rotation.y += 1/64 * delta;
+		this.tether.rotation.y += this.orbit * delta;
 		this.base.rotation.y  += 1/32 * delta;
 		if(this.atmosphere){
 			this.atmosphere.rotation.y  += 1/16 * delta;
 		}
 
-		// for(var i=0; i<moons.length; i++){
-		// 	moons[i].animate(delta);
-		// }
+		if(this.moons){
+			for(let i=0; i<this.moons.length; i++){
+				this.moons[i].animate(delta);
+			}
+		}
 	}
 }
 var frameNum = 0;
@@ -30,10 +33,10 @@ var cameraControls;
 var clock = new THREE.Clock();
 
 var lightConstant = 1.5;
-var planetRadius = 1;
+var planetRadius = 1; // for an average planet
 
 var cameraMinDistance = planetRadius*2.5;
-var cameraMaxDistance = 5000;
+var cameraMaxDistance = planetRadius*3000;
 
 var skybox;
 
@@ -65,10 +68,10 @@ function fillScene() {
 
 	//The planets
 
-	var got = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
+	var got = drawPlanet({ x:550, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(got);
 
-	var Ringly = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius*2, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:1 });
+	var Ringly = drawPlanet({ x:500, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:4 });
 	planets.push(Ringly);
 
 	for (const i in planets) {
@@ -164,7 +167,7 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 	if(numMoons){
 		moons = [];
 		for(let i=numMoons; i>0; i--){
-			let moon = drawPlanet({x:radius*3, y:0, z:0, radius:radius/4, folder:'moon'})
+			let moon = drawPlanet({x:radius*(3+((Math.random()+1)*2*i)), y:0, z:0, radius:radius/8, folder:'moon'})
 			planetMesh.add(moon.tether);
 			moons.push(moon);
 		}
@@ -290,7 +293,7 @@ function init() {
 	// Moving the camera with the mouse is simple enough - so this is provided. However, note that by default,
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-	camera.position.set( planetRadius*5, 0, 0);
+	camera.position.set( planetRadius*25, planetRadius*5, 0);
 	cameraControls.minDistance = cameraMinDistance;
 	cameraControls.maxDistance = cameraMaxDistance;
 }
@@ -318,7 +321,7 @@ function render() {
 	//skybox.position = camera.position;
 	//TWEEN.update();
 
-	skybox.rotation.y  -= 1/64 * delta;//faking orbits
+	skybox.rotation.z  -= 1/64 * delta;//faking orbits
 	//rotate planet
 	planets[current].animate(delta);
 	//only move particles every second frame because eficiency
@@ -344,20 +347,25 @@ function targetWorld(){
 	current += 1;
 	var index = current%planets.length
 	const planet = planets[index];
-	//scene.remove(planet.tether);
+
 	planets[index].base.add(camera);
-	//scene.add(planet.tether);
-	//cameraControls.target.set(planets[index].base.position.x, planets[index].base.position.y, planets[index].base.position.z);
+	camera.position.set( planetRadius*25, planetRadius*5, 0);
+
 	current = index;
 }
+
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
         case 32:
-            targetWorld();
+            //targetWorld();
         break;
+				case 80://p for planet
+						targetWorld();
+				break;
+				case 77://m for moons
+
+				break;
     }
-
-
 };
 
 try {
