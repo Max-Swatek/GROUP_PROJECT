@@ -59,7 +59,7 @@ var textureFlare3 = textureLoader.load( "/Textures/lensflare/lensflare3.png" );
 //particle effect
 var particleGeometry;
 
-//millenium falcon
+//Tie fighter cuz millenium falcon had too many polys
 let mainShip;
 const speedIntervals = 6;
 
@@ -97,7 +97,6 @@ function fillScene() {
 		scene.add(planets[i].tether);
 	}
 
-	//the falcon, of course
 	drawMainShip();
 
 	//the dust
@@ -244,7 +243,7 @@ const makeRings = ({ radius, folder }) => {
 }
 
 const drawMainShip = () => {
-	new THREE.JSONLoader().load( '/Models/spaceship/falcon.json', (geometry, materials) => {
+	new THREE.JSONLoader().load( '/Models/spaceship/TIE.json', (geometry, materials) => {
         mainShip = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
           mainShip.position.x =500;
           mainShip.position.y =0;
@@ -269,10 +268,10 @@ const fireLaser = () => {
 
 	//laser.position.copy(mainShip.position);
 	laser.scale.set(10, 5, 5);
-	laser.rotation.y = (Math.PI / 2);
+	laser.rotation.y = Math.PI;
 	//scene.add(laser);
 	mainShip.add(laser);
-	laserBeams.push(laser);
+	laserBeams.push({ laser, time: new THREE.Clock() });
 }
 
 
@@ -484,7 +483,7 @@ function render() {
 	}
 
 	if (laserBeams && laserBeams.length > 0) {
-		moveLasers();
+		moveLasers(delta);
 	}
 }
 
@@ -502,32 +501,37 @@ const moveParticles = () => {
  particleGeometry.verticesNeedUpdate = true;
 }
 
-const moveLasers = () => {
+const moveLasers = (delta) => {
 	for (const i in laserBeams) {
-		laserBeams[i].translateX(5);
+		const laser = laserBeams[i];
+		//don't move it if it's far enough away
+		if (laser.time.getElapsedTime() < 4 ) {
+			laserBeams[i].laser.translateX(5);
+		}
+
 	}
 }
 const moveMainShip = (delta) => {
 	const steeringSpeed = .3 + (((mainShip.speed * .3) + 0.001)/ (mainShip.maxSpeed + .001)); //can move quicker at higher speeds
 
 	if (mainShip.speed > mainShip.minSpeed) {
-		mainShip.translateZ(-(((mainShip.speed / speedIntervals) * (mainShip.maxSpeed - mainShip.minSpeed)) + mainShip.minSpeed));
+		mainShip.translateX(-(((mainShip.speed / speedIntervals) * (mainShip.maxSpeed - mainShip.minSpeed)) + mainShip.minSpeed));
 	}
 
 	if (mainShip.rotateLeft) {
-		mainShip.rotateZ(1 * steeringSpeed * delta);
-	}
-
-	else if (mainShip.rotateRight) {
-		mainShip.rotateZ(-1 * steeringSpeed * delta);
-	}
-
-	if (mainShip.pitchUp) {
 		mainShip.rotateX(1 * steeringSpeed * delta);
 	}
 
-	else if (mainShip.pitchDown) {
+	else if (mainShip.rotateRight) {
 		mainShip.rotateX(-1 * steeringSpeed * delta);
+	}
+
+	if (mainShip.pitchUp) {
+		mainShip.rotateZ(-1 * steeringSpeed * delta);
+	}
+
+	else if (mainShip.pitchDown) {
+		mainShip.rotateZ(1 * steeringSpeed * delta);
 	}
 
 	if (mainShip.bankLeft) {

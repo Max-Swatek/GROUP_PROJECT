@@ -11,7 +11,7 @@ THREEx.LaserBeam	= function(){
 	var material	= new THREE.MeshBasicMaterial({
 		map		: texture,
 		blending	: THREE.AdditiveBlending,
-		color		: 0x44FFaa,
+		color		: 0x00FF00,
 		side		: THREE.DoubleSide,
 		depthWrite	: false,
 		transparent	: true
