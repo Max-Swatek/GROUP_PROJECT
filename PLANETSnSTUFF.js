@@ -103,7 +103,9 @@ function fillScene() {
 	drawParticles({ minX: -1000, maxX: 1000, minY: -150, maxY: 150, minZ: -1000, maxZ: 1000, numParticles: 5000 });
 
 }
-
+function drawTieFighter(){
+	let tie = new THREE.SphereGeometry(0.01,32,32);
+}
 const addLight = (h, s, l, x, y, z ) => {
 
 	var light = new THREE.PointLight( 0xffffff, lightConstant*2, 3000, 2 );
