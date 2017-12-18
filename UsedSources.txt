@@ -1,0 +1,13 @@
+Links:
+https://photojournal.jpl.nasa.gov/jpeg/PIA11673.jpg
+	^^Moon1 texture
+https://img00.deviantart.net/d6f5/i/2010/233/0/4/upsilon_andromedae_c_texture_by_enderion.png
+	^^Gas Giant texture (was altered further in Photoshop)
+https://codepen.io/jaamo/pen/MaOGZV
+	^^used to understand how to make a Heads up display to overlay ship speed
+http://frederickhiggins.com/celestia/index_htm_files/8505.jpg
+	^^tatooine texture (was altered further in Photoshop)
+
+
+Software Used:
+Photoshop CC

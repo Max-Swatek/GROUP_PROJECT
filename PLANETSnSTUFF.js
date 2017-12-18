@@ -2,10 +2,28 @@
 'user strict'
 
 class Planet{
-	constructor(base, atmosphere, rings){
+
+	constructor({base, atmosphere, rings, moons, tether}){
 		this.base = base;
 		this.atmosphere = atmosphere;
 		this.rings = rings;
+		this.moons = moons;
+		this.tether = tether;
+		this.orbit = 1/((base.position.x)/4);
+	}
+
+	animate(delta){
+		this.tether.rotation.y += this.orbit * delta;
+		this.base.rotation.y  += 1/32 * delta;
+		if(this.atmosphere){
+			this.atmosphere.rotation.y  += 1/16 * delta;
+		}
+
+		if(this.moons){
+			for(let i=0; i<this.moons.length; i++){
+				this.moons[i].animate(delta);
+			}
+		}
 	}
 }
 var frameNum = 0;
@@ -14,6 +32,7 @@ var camera, scene, cameraHUD, sceneHUD, hudBitmap, hudTexture, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
 
+<<<<<<< HEAD
 const width = window.innerWidth;
 const height = window.innerHeight
 
@@ -22,9 +41,13 @@ var cloudMesh;
 
 var lightConstant	 = 1.5;
 var planetRadius = 1;
+=======
+var lightConstant = 1.5;
+var planetRadius = 1; // for an average planet
+>>>>>>> master
 
 var cameraMinDistance = planetRadius*2.5;
-var cameraMaxDistance = 5000;
+var cameraMaxDistance = planetRadius*3000;
 
 var skybox;
 
@@ -41,12 +64,6 @@ var textureFlare3 = textureLoader.load( "/Textures/lensflare/lensflare3.png" );
 
 //particle effect
 var particleGeometry;
-const minX = 250;
-const maxX = 750;
-const minY = -200;
-const maxY = 200;
-const minZ = 750;
-const maxZ = 1250;
 
 //millenium falcon
 let mainShip;
@@ -66,20 +83,29 @@ function fillScene() {
 	drawSkyBox();
 
 	//The planets
-	var earth1 = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
-	planets.push(earth1);
-	var ringly = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'earth', atmosphere:true });
-	planets.push(ringly);
+	//a venus like thick atmosphered terestrial
+	var volcano = drawPlanet({ x:650, y:0, z:0, radius:planetRadius, folder:'tatooine', atmosphere:true });
+	planets.push(volcano);
+
+	var poke = drawPlanet({ x:750, y:0, z:0, radius:planetRadius, folder:'PokeMap', atmosphere:true,numMoons:1 });
+	planets.push(poke);
+
+	var got = drawPlanet({ x:850, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true, numMoons:2 });
+	planets.push(got);
+
+	var Ringly = drawPlanet({ x:1050, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
+	planets.push(Ringly);
 
 	for (const i in planets) {
-		scene.add(planets[i].base);
+		scene.add(planets[i].tether);
 	}
 
 	//the falcon, of course
 	drawMainShip();
 
 	//the dust
-	drawParticles();
+	drawParticles({ minX: -1000, maxX: 1000, minY: -150, maxY: 150, minZ: -1000, maxZ: 1000, numParticles: 5000 });
+
 }
 
 const addLight = (h, s, l, x, y, z ) => {
@@ -132,22 +158,23 @@ function drawSkyBox(){
 	scene.add(skybox);
 }
 
-function drawPlanet({x,y,z, radius, folder, atmosphere, rings}) {
-	var planetGeometry = new THREE.SphereGeometry(radius,32,32);
-	var planetMaterial = new THREE.MeshPhongMaterial();
+function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
+	let planetGeometry = new THREE.SphereGeometry(radius,32,32);
+	let planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
 	planetMaterial.bumpMap = new THREE.TextureLoader().load(`/Textures/${folder}/bump.jpg`);
 	planetMaterial.bumpScale = radius;
 	planetMaterial.specularMap = new THREE.TextureLoader().load(`/Textures/${folder}/spec.jpg`);
 	planetMaterial.specular = new THREE.Color('grey');
 
-	planetMesh = new THREE.Mesh(planetGeometry,planetMaterial);
+	let planetMesh = new THREE.Mesh(planetGeometry,planetMaterial);
 	planetMesh.position.x = x;
 	planetMesh.position.y = y+radius;
 	planetMesh.position.z = z;
 
 	let cloudMesh = null;
 	let ringMesh = null;
+	let moons = null;
 
 	//If there's an atomasphere, add one!
 	if(atmosphere){
@@ -161,10 +188,33 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings}) {
 		planetMesh.add(ringMesh);
 	}
 
-	const planet = new Planet(planetMesh, cloudMesh, ringMesh);
+	//If theres an amount of moons requiered, add them
+	if(numMoons){
+		moons = [];
+		let minOrbit = radius*6
+		for(let i=0; i<numMoons; i++){
+			let moonRadius = (radius/16)*(1+(Math.random()*3));
+			let moon = drawPlanet({x:minOrbit+i*(radius+ moonRadius), y:-moonRadius, z:0, radius:moonRadius, folder:`moon${i%5}`})
+			planetMesh.add(moon.tether);
+			moons.push(moon);
+		}
+	}
+	let tether = makeTether();
+	//tether.add(planetMesh);
+	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh, moons:moons, tether:tether});
+	planet.tether.add(planet.base);
 	return planet;
 }
-
+function makeTether(){
+	let tether = new THREE.Mesh(
+		new THREE.SphereGeometry(planetRadius/10, 5, 5),
+		textureLoader.load( "/Textures/particles/ParticleTexture.png" )
+	);
+	tether.position.x = 0;
+	tether.position.y = 0;
+	tether.position.z = 0;
+	return tether;
+}
 const makeAtmosphere = ({radius, folder}) => {
 
 	var geometry = new THREE.SphereGeometry(radius, 32, 32);
@@ -186,12 +236,15 @@ const makeRings = ({ radius, folder }) => {
 	const material = new THREE.MeshBasicMaterial ();
 	material.map = new THREE.TextureLoader().load(`/Textures/${folder}/rings.png`);
 	material.transparent = true;
+	material.bumpMap = new THREE.TextureLoader().load(`/Textures/${folder}/ringsBump.png`);
+	material.bumpScale = radius * 2;
 	material.opacity = 0.6;
 	material.side = THREE.DoubleSide;
 
 	return new THREE.Mesh(geometry, material);
 }
 
+<<<<<<< HEAD
 const drawMainShip = () => {
 	new THREE.JSONLoader().load( '/Models/spaceship/falcon.json', (geometry, materials) => {
         mainShip = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
@@ -213,11 +266,18 @@ const drawMainShip = () => {
 const drawParticles = () => {
 	const numParticles = 5000;
 
+=======
+const drawParticles = ({ minX, maxX, minY, maxY, minZ, maxZ, numParticles }) => {
+>>>>>>> master
 	const particleMap = textureLoader.load( "/Textures/particles/ParticleTexture.png" );
 
-	const colors = [];
-
 	particleGeometry = new THREE.Geometry();
+	particleGeometry.minX = minX;
+	particleGeometry.minY = minY;
+	particleGeometry.minZ = minZ;
+	particleGeometry.maxX = maxX;
+	particleGeometry.maxY = maxY;
+	particleGeometry.maxZ = maxZ;
 
 	let x, y, z;
 	for (let i = 0; i < numParticles; i++) {
@@ -259,8 +319,6 @@ const drawParticles = () => {
 		transparent: true
 	});
 
-	material.color.setHSL( 1.0, 0.2, 0.7 );
-
 	const points = new THREE.Points(particleGeometry, material);
 	scene.add(points);
 }
@@ -286,11 +344,17 @@ function init() {
 	// Moving the camera with the mouse is simple enough - so this is provided. However, note that by default,
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+<<<<<<< HEAD
 	camera.position.set( 10, 12, 45);
 	//camera.position.set( 600, planetRadius, 1100);
 	//cameraControls.target.set(500, planetRadius, 1000);
 	//cameraControls.minDistance = cameraMinDistance;
 	//cameraControls.maxDistance = cameraMaxDistance;
+=======
+	camera.position.set( planetRadius*25, planetRadius*5, 0);
+	cameraControls.minDistance = cameraMinDistance;
+	cameraControls.maxDistance = cameraMaxDistance;
+>>>>>>> master
 }
 
 
@@ -397,18 +461,25 @@ function render() {
 	var delta = clock.getDelta();
 	frameNum = (frameNum + 1) % 60
 	cameraControls.update(delta);
+	//cameraControls.target.set(planets[current].base.position.x, planets[current].base.position.y, planets[current].base.position.z);
 	renderer.render(scene, camera);
+<<<<<<< HEAD
 	renderer.render(sceneHUD, cameraHUD);
 
 	if (skybox) {
 		skybox.position = camera.position;
 	}
 	TWEEN.update();
+=======
+	//skybox.position = camera.position;
+	//TWEEN.update();
+>>>>>>> master
 
+	skybox.rotation.z  -= 1/64 * delta;//faking orbits
 	//rotate planet
-  planets[current].base.rotation.y  += 1/32 * delta;
-  planets[current].atmosphere.rotation.y  += 1/16 * delta;
-
+	for(let i=0; i<planets.length; i++){
+		planets[i].animate(delta);
+	}
 	//only move particles every second frame because eficiency
 	if (frameNum % 2 === 0) {
 	 moveParticles();
@@ -421,6 +492,7 @@ function render() {
 }
 
 const moveParticles = () => {
+<<<<<<< HEAD
 	if (particleGeometry && particleGeometry.vertices) {
 		particleGeometry.vertices.forEach((particle => {
 		 particle.add(new THREE.Vector3(particle.dX, particle.dY, particle.dZ));
@@ -515,17 +587,35 @@ const bankShipRight = (pressed) => {
 	if (mainShip) {
 		mainShip.bankRight = pressed;
 	}
+=======
+	const { minX, maxX, minY, maxY, minZ, maxZ } = particleGeometry
+	particleGeometry.vertices.forEach((particle => {
+	 particle.add(new THREE.Vector3(particle.dX, particle.dY, particle.dZ));
+	 if (particle.x > maxX) particle.x = minX;
+	 if (particle.x < minX) particle.x = maxX;
+	 if (particle.y > maxY) particle.y = minY;
+	 if (particle.y < minY) particle.y = maxY;
+	 if (particle.z > maxZ) particle.z = minZ;
+	 if (particle.z < minZ) particle.z = maxZ;
+ }));
+ particleGeometry.verticesNeedUpdate = true;
+>>>>>>> master
 }
 
 function targetWorld(){
 	current += 1;
 	var index = current%planets.length
-	cameraControls.target.set(planets[index].base.position.x, planets[index].base.position.y, planets[index].base.position.z);
+	const planet = planets[index];
+
+	planets[index].base.add(camera);
+	camera.position.set( planetRadius*25, planetRadius*5, 0);
+
 	current = index;
 }
 
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
+<<<<<<< HEAD
         case 32: //space bar switches view
           targetWorld();
         	break;
@@ -589,6 +679,17 @@ document.onkeyup = function move(e) {
 				case 69: //69 banks right (it banks a couple other things too ;)
 					bankShipRight(false);
 					break;
+=======
+        case 32:
+            //targetWorld();
+        break;
+				case 80://p for planet
+						targetWorld();
+				break;
+				case 77://m for moons
+
+				break;
+>>>>>>> master
     }
 };
 
@@ -596,6 +697,10 @@ try {
   	init();
 		initHUD();
   	fillScene();
+<<<<<<< HEAD
+=======
+ 		addToDOM();
+>>>>>>> master
   	animate();
 
 } catch(error) {
