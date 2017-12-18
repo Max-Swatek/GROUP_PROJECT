@@ -71,7 +71,7 @@ function fillScene() {
 	var got = drawPlanet({ x:550, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(got);
 
-	var Ringly = drawPlanet({ x:500, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:4 });
+	var Ringly = drawPlanet({ x:500, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
 	planets.push(Ringly);
 
 	for (const i in planets) {
@@ -166,8 +166,11 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 	//If theres an amount of moons requiered, add them
 	if(numMoons){
 		moons = [];
+		let minOrbit = radius*6
 		for(let i=numMoons; i>0; i--){
-			let moon = drawPlanet({x:radius*(3+((Math.random()+1)*2*i)), y:0, z:0, radius:radius/8, folder:'moon'})
+			let moonRadius = (radius/16)*(1+(Math.random()*3));
+			//radius*(i+1)*((Math.random()*3)+1)+moonRadius
+			let moon = drawPlanet({x:minOrbit+i*(radius+ moonRadius), y:-moonRadius, z:0, radius:moonRadius, folder:'moon'})
 			planetMesh.add(moon.tether);
 			moons.push(moon);
 		}
