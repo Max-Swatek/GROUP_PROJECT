@@ -245,6 +245,7 @@ const makeRings = ({ radius, folder }) => {
 const drawMainShip = () => {
 	new THREE.JSONLoader().load( '/Models/spaceship/TIE.json', (geometry, materials) => {
         mainShip = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
+
           mainShip.position.x =500;
           mainShip.position.y =0;
           mainShip.position.z =900;
@@ -252,7 +253,7 @@ const drawMainShip = () => {
 					mainShip.maxSpeed = 2;
 					mainShip.minSpeed = 0;
 
-					mainShip.speed = 1;
+					mainShip.speed = 1; //initial speed level, not speed number (ie which of the 0-5 between min and max)
 				//Add the camera
 				mainShip.add(camera);
 
@@ -281,6 +282,12 @@ const fireLaser = () => {
 	mainShip.add(laser);
 	mainShip.add(laser2);
 	laserBeams.push({ laser, laser2, time: new THREE.Clock() });
+
+	//Laser noise
+	const sound = document.getElementById('shotFired');
+	sound.load();
+	sound.volume = 0.4;
+	sound.play();
 }
 
 
@@ -513,11 +520,17 @@ const moveParticles = () => {
 
 const moveLasers = (delta) => {
 	for (const i in laserBeams) {
-		const laser = laserBeams[i];
+		const { time, laser, laser2 } = laserBeams[i];
 		//don't move it if it's far enough away
-		if (laser.time.getElapsedTime() < 4 ) {
-			laserBeams[i].laser.translateX(5);
-			laserBeams[i].laser2.translateX(5);
+		if (time.getElapsedTime() < 4 ) {
+			laser.translateX(5);
+			laser2.translateX(5);
+		}
+		//remove them from being rendered, but they are still in the laserBeams array
+		//this is an efficiency thing... would otherwise have to replace the entire array with a new one on each render
+		else {
+			mainShip.remove(laser);
+			mainShip.remove(laser2);
 		}
 
 	}
