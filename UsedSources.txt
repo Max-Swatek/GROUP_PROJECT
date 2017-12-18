@@ -10,7 +10,8 @@ http://frederickhiggins.com/celestia/index_htm_files/8505.jpg
 
 https://github.com/jeromeetienne/threex.laser
 	^^Three JS laser plug in.  Oh yeah!
-
+https://www.blendswap.com/blends/view/86192
+	^^Tie fighter model
 
 Software Used:
 Photoshop CC
