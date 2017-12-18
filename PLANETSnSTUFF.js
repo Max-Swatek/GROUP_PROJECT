@@ -253,7 +253,6 @@ const drawMainShip = () => {
 					mainShip.minSpeed = 0;
 
 					mainShip.speed = 1;
-
 				//Add the camera
 				mainShip.add(camera);
 
@@ -640,12 +639,12 @@ document.onkeydown = function move(e) {
 					slowDownShip();
 					break;
 
-				case 65: //A rotates ship left
-					rotateShipLeft(true);
+				case 65: //a banks left
+					bankShipLeft(true);
 					break;
 
-				case 68: //D rotates ship right
-					rotateShipRight(true);
+				case 68: //d banks right (it banks a couple other things too ;)
+					bankShipRight(true);
 					break;
 
 				case 83: //S ups the ship's pitch
@@ -656,12 +655,12 @@ document.onkeydown = function move(e) {
 					pitchShipDown(true);
 					break;
 
-				case 81: //q banks left
-					bankShipLeft(true);
+				case 81: //q rotates ship left
+					rotateShipLeft(true);
 					break;
 
-				case 69: //69 banks right (it banks a couple other things too ;)
-					bankShipRight(true);
+				case 69: //r rotates ship right
+					rotateShipRight(true);
 					break;
     }
 };
@@ -669,12 +668,12 @@ document.onkeydown = function move(e) {
 document.onkeyup = function move(e) {
     switch (e.keyCode) {
 
-				case 65: //A rotates ship left
-					rotateShipLeft(false);
+				case 65: //A banks ship left
+					bankShipLeft(false);
 					break;
 
-				case 68: //D rotates ship right
-					rotateShipRight(false);
+				case 68: //D banks ship right (it banks a couple other things too ;)
+					bankShipRight(false);
 					break;
 
 				case 83: //S ups the ship's pitch
@@ -685,12 +684,12 @@ document.onkeyup = function move(e) {
 					pitchShipDown(false);
 					break;
 
-				case 81: //q banks left
-					bankShipLeft(false);
+				case 81: //q rotate left
+					rotateShipLeft(false);
 					break;
 
-				case 69: //69 banks right (it banks a couple other things too ;)
-					bankShipRight(false);
+				case 69: //69 rotate right
+					rotateShipRight(false);
 					break;
 
 
