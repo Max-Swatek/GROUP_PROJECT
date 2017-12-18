@@ -181,7 +181,7 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 		planetMesh.add(ringMesh);
 	}
 
-	//If theres an amount of moons requiered, add them
+	//If  theres an amount of moons requiered, add them
 	if(numMoons){
 		moons = [];
 		let minOrbit = radius*6
