@@ -7,11 +7,11 @@ THREEx.LaserBeam	= function(){
 	var canvas	= generateLaserBodyCanvas()
 	var texture	= new THREE.Texture( canvas )
 	texture.needsUpdate	= true;
-	// do the material
+	// do the material	
 	var material	= new THREE.MeshBasicMaterial({
 		map		: texture,
 		blending	: THREE.AdditiveBlending,
-		color		: 0x44FFaa,
+		color		: 0x4444aa,
 		side		: THREE.DoubleSide,
 		depthWrite	: false,
 		transparent	: true
@@ -25,7 +25,7 @@ THREEx.LaserBeam	= function(){
 		object3d.add(mesh)
 	}
 	return
-
+	
 	function generateLaserBodyCanvas(){
 		// init canvas
 		var canvas	= document.createElement( 'canvas' );
@@ -33,7 +33,7 @@ THREEx.LaserBeam	= function(){
 		canvas.width	= 1;
 		canvas.height	= 64;
 		// set gradient
-		var gradient	= context.createLinearGradient(0, 0, canvas.width, canvas.height);
+		var gradient	= context.createLinearGradient(0, 0, canvas.width, canvas.height);		
 		gradient.addColorStop( 0  , 'rgba(  0,  0,  0,0.1)' );
 		gradient.addColorStop( 0.1, 'rgba(160,160,160,0.3)' );
 		gradient.addColorStop( 0.5, 'rgba(255,255,255,0.5)' );
@@ -42,7 +42,7 @@ THREEx.LaserBeam	= function(){
 		// fill the rectangle
 		context.fillStyle	= gradient;
 		context.fillRect(0,0, canvas.width, canvas.height);
-		// return the just built canvas
-		return canvas;
+		// return the just built canvas 
+		return canvas;	
 	}
 }
