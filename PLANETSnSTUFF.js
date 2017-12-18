@@ -14,7 +14,7 @@ class Planet{
 
 	animate(delta){
 
-		this.tether.rotation.z += Math.sin(this.orbit * delta);
+		//this.tether.rotation.z += Math.sin(this.orbit * delta);
 		this.tether.rotation.y += this.orbit * delta;
 		this.base.rotation.y  += 1/32 * delta;
 		if(this.atmosphere){
