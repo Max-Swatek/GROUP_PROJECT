@@ -67,18 +67,15 @@ function fillScene() {
 	drawSkyBox();
 
 	//The planets
-
-	var got = drawPlanet({ x:550, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true, numMoons:2 });
-	planets.push(got);
-
-	var poke = drawPlanet({ x:750, y:0, z:0, radius:planetRadius, folder:'PokeMap', atmosphere:true });
-	planets.push(poke);
-
-	var volcano = drawPlanet({ x:850, y:0, z:0, radius:planetRadius, folder:'tatooine', atmosphere:true });
+	//a venus like thick atmosphered terestrial
+	var volcano = drawPlanet({ x:650, y:0, z:0, radius:planetRadius, folder:'tatooine', atmosphere:true });
 	planets.push(volcano);
 
-	var alt = drawPlanet({ x:950, y:0, z:0, radius:planetRadius, folder:'altEarth', atmosphere:true, numMoons:1 });
-	planets.push(alt);
+	var poke = drawPlanet({ x:750, y:0, z:0, radius:planetRadius, folder:'PokeMap', atmosphere:true,numMoons:1 });
+	planets.push(poke);
+
+	var got = drawPlanet({ x:850, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true, numMoons:2 });
+	planets.push(got);
 
 	var Ringly = drawPlanet({ x:1050, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
 	planets.push(Ringly);
