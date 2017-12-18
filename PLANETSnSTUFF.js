@@ -28,12 +28,16 @@ class Planet{
 }
 var frameNum = 0;
 
-var camera, scene, renderer;
+var camera, scene, cameraHUD, sceneHUD, hudBitmap, hudTexture, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
 
-var lightConstant = 1.5;
-var planetRadius = 1; // for an average planet
+
+const width = window.innerWidth;
+const height = window.innerHeight
+
+const lightConstant = 1.5;
+const planetRadius = 1; // for an average planet
 
 var cameraMinDistance = planetRadius*2.5;
 var cameraMaxDistance = planetRadius*3000;
@@ -54,8 +58,13 @@ var textureFlare3 = textureLoader.load( "/Textures/lensflare/lensflare3.png" );
 //particle effect
 var particleGeometry;
 
+//millenium falcon
+let mainShip;
+const speedIntervals = 6;
+
 Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
+
 function fillScene() {
 
 	scene = new Physijs.Scene();
@@ -83,6 +92,9 @@ function fillScene() {
 	for (const i in planets) {
 		scene.add(planets[i].tether);
 	}
+
+	//the falcon, of course
+	drawMainShip();
 
 	//the dust
 	drawParticles({ minX: -1000, maxX: 1000, minY: -150, maxY: 150, minZ: -1000, maxZ: 1000, numParticles: 5000 });
@@ -225,6 +237,25 @@ const makeRings = ({ radius, folder }) => {
 	return new THREE.Mesh(geometry, material);
 }
 
+const drawMainShip = () => {
+	new THREE.JSONLoader().load( '/Models/spaceship/falcon.json', (geometry, materials) => {
+        mainShip = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
+          mainShip.position.x =500;
+          mainShip.position.y =0;
+          mainShip.position.z =900;
+
+					mainShip.maxSpeed = 2;
+					mainShip.minSpeed = 0;
+
+					mainShip.speed = 1;
+
+				mainShip.add(camera);
+        scene.add( mainShip );
+			});
+
+}
+
+
 const drawParticles = ({ minX, maxX, minY, maxY, minZ, maxZ, numParticles }) => {
 	const particleMap = textureLoader.load( "/Textures/particles/ParticleTexture.png" );
 
@@ -281,18 +312,18 @@ const drawParticles = ({ minX, maxX, minY, maxY, minZ, maxZ, numParticles }) => 
 }
 
 function init() {
-	const canvasWidth = window.innerWidth;
-	const canvasHeight = window.innerHeight;
-
-	var canvasRatio = canvasWidth / canvasHeight;
+	var canvasRatio = width / height;
 
 	// Set up a renderer. This will allow WebGL to make your scene appear
 	renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
 
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-	renderer.setSize(canvasWidth, canvasHeight);
+	renderer.setSize(width, height);
 	renderer.setClearColor( 0xAAAAAA, 1.0 );
+	renderer.autoClear = false;
+
+	document.body.appendChild(renderer.domElement);
 
 	// You also want a camera. The camera has a default position, but you most likely want to change this.
 	// You'll also want to allow a viewpoint that is reminiscent of using the machine as described in the pdf
@@ -301,23 +332,111 @@ function init() {
 	// Moving the camera with the mouse is simple enough - so this is provided. However, note that by default,
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+
 	camera.position.set( planetRadius*25, planetRadius*5, 0);
 	cameraControls.minDistance = cameraMinDistance;
 	cameraControls.maxDistance = cameraMaxDistance;
+
 }
 
-function addToDOM() {
-    var canvas = document.getElementById('canvas');
-    canvas.appendChild(renderer.domElement);
+
+/*
+**
+**
+** HUD
+**
+**
+*/
+	const initHUD = () => {
+		var hudCanvas = document.createElement('canvas');
+
+	  // Again, set dimensions to fit the screen.
+	  hudCanvas.width = width;
+	  hudCanvas.height = height;
+
+	  // Get 2D context and draw something supercool.
+
+	  hudBitmap = hudCanvas.getContext('2d');
+
+	  // Create the camera and set the viewport to match the screen dimensions.
+	  cameraHUD = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0, 30 );
+
+	  // Create also a custom scene for HUD.
+	  sceneHUD = new THREE.Scene();
+
+		// Create texture from rendered graphics.
+		hudTexture = new THREE.Texture(hudCanvas)
+
+		//draw theHUD
+		drawHUD();
+
+	  // Create HUD material.
+
+		increase = Math.PI * 2 / 100
+	  var material = new THREE.MeshBasicMaterial( {map: hudTexture} );
+	  material.transparent = true;
+
+	  // Create plane to render the HUD. This plane fill the whole screen.
+	  var planeGeometry = new THREE.PlaneGeometry( width, height );
+	  var plane = new THREE.Mesh( planeGeometry, material );
+	  sceneHUD.add( plane );
+
 }
 
-	// This is a browser callback for repainting
-	// Since you might change view, or move things
-	// We cant to update what appears
+const drawHUD = () => {
+	//assumes a max of 6 speedbars
+	hudBitmap.clearRect(0, 0, width, height);
+
+	hudBitmap.font = "Normal 30px Arial";
+	hudBitmap.fillStyle = "rgba(245,245,245,0.75)";
+	hudBitmap.fillText('Speed:', 20, height - 30);
+
+	let numBars = 1;
+	if (mainShip) numBars = mainShip.speed;
+	const colors = ['#45F442', '#ADF442', '#F4F442', '#F4D142', '#F48042', '#F24135'];
+
+	//draw speed bars
+	for (let i = 0; i < numBars; i++) {
+
+		hudBitmap.beginPath();
+		hudBitmap.rect(125 + (i * 15), height-53, 10, 25);
+		hudBitmap.fillStyle = colors[i];
+		hudBitmap.fill();
+	}
+
+	//draw empty speed bars
+	for (let i = 0; i < speedIntervals; i++) {
+
+		hudBitmap.beginPath();
+		hudBitmap.rect(125 + (i * 15), height-53, 10, 25);
+		hudBitmap.strokeStyle = colors[i];
+		hudBitmap.lineWidth = "2";
+		hudBitmap.stroke();
+	}
+
+	hudTexture.needsUpdate = true;
+}
+
+/*
+**
+**
+** End HUD
+**
+**
+*/
+
+
 function animate() {
 	window.requestAnimationFrame(animate);
+
+	// // Update HUD graphics.
+  // 	hudBitmap.clearRect(0, 0, width, height);
+  //   hudBitmap.fillText("RAD [x:", width / 2, height / 2); //+(cube.rotation.x % (2 * Math.PI)).toFixed(1)+", y:"+(cube.rotation.y % (2 * Math.PI)).toFixed(1)+", z:"+(cube.rotation.z % (2 * Math.PI)).toFixed(1)+"]" , width / 2, height / 2);
+  //   hudTexture.needsUpdate = true;
+
 	render();
 }
+
 
 function render() {
 	scene.simulate();
@@ -326,8 +445,8 @@ function render() {
 	cameraControls.update(delta);
 	//cameraControls.target.set(planets[current].base.position.x, planets[current].base.position.y, planets[current].base.position.z);
 	renderer.render(scene, camera);
-	//skybox.position = camera.position;
-	//TWEEN.update();
+
+	renderer.render(sceneHUD, cameraHUD);
 
 	skybox.rotation.z  -= 1/64 * delta;//faking orbits
 	//rotate planet
@@ -335,8 +454,14 @@ function render() {
 		planets[i].animate(delta);
 	}
 	//only move particles every second frame because eficiency
-	if (frameNum % 2 === 0)
+	if (frameNum % 2 === 0) {
 	 moveParticles();
+ }
+
+ //moves the ship and rotates if applicable
+	if (mainShip) {
+	 moveMainShip(delta);
+	}
 }
 
 const moveParticles = () => {
@@ -353,6 +478,89 @@ const moveParticles = () => {
  particleGeometry.verticesNeedUpdate = true;
 }
 
+
+const moveMainShip = (delta) => {
+	const steeringSpeed = .3 + (((mainShip.speed * .3) + 0.001)/ (mainShip.maxSpeed + .001)); //can move quicker at higher speeds
+
+	if (mainShip.speed > mainShip.minSpeed) {
+		mainShip.translateZ(-(((mainShip.speed / speedIntervals) * (mainShip.maxSpeed - mainShip.minSpeed)) + mainShip.minSpeed));
+	}
+
+	if (mainShip.rotateLeft) {
+		mainShip.rotateZ(1 * steeringSpeed * delta);
+	}
+
+	else if (mainShip.rotateRight) {
+		mainShip.rotateZ(-1 * steeringSpeed * delta);
+	}
+
+	if (mainShip.pitchUp) {
+		mainShip.rotateX(1 * steeringSpeed * delta);
+	}
+
+	else if (mainShip.pitchDown) {
+		mainShip.rotateX(-1 * steeringSpeed * delta);
+	}
+
+	if (mainShip.bankLeft) {
+		mainShip.rotateY(1 * steeringSpeed * delta);
+	}
+
+	else if (mainShip.bankRight) {
+		mainShip.rotateY(-1 * steeringSpeed * delta);
+	}
+}
+
+const speedUpShip = () => {
+	if (mainShip && mainShip.speed < speedIntervals) {
+		mainShip.speed ++;
+		drawHUD();
+	}
+}
+
+const slowDownShip = () => {
+	if (mainShip && (mainShip.speed / (mainShip.maxSpeed - mainShip.minSpeed)) > mainShip.minSpeed) {
+		mainShip.speed --;
+		drawHUD();
+	}
+}
+
+const rotateShipLeft = (pressed) => {
+	if (mainShip) {
+		mainShip.rotateLeft = pressed;
+	}
+}
+
+const rotateShipRight = (pressed) => {
+	if (mainShip) {
+		mainShip.rotateRight = pressed;
+	}
+}
+
+const pitchShipUp = (pressed) => {
+	if (mainShip) {
+		mainShip.pitchUp = pressed;
+	}
+}
+
+const pitchShipDown = (pressed) => {
+	if (mainShip) {
+		mainShip.pitchDown = pressed;
+	}
+}
+
+const bankShipLeft = (pressed) => {
+	if (mainShip) {
+		mainShip.bankLeft = pressed;
+	}
+}
+
+const bankShipRight = (pressed) => {
+	if (mainShip) {
+		mainShip.bankRight = pressed;
+	}
+}
+
 function targetWorld(){
 	current += 1;
 	var index = current%planets.length
@@ -366,22 +574,85 @@ function targetWorld(){
 
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
-        case 32:
-            //targetWorld();
-        break;
+				case 32:
+					//targetWorld();
+					break;
 				case 80://p for planet
-						targetWorld();
-				break;
+					targetWorld();
+					break;
 				case 77://m for moons
 
-				break;
+					break;
+
+
+				case 16: //shift speeds up ship
+					speedUpShip();
+					break;
+
+				case 17: //control slows down ship
+					slowDownShip();
+					break;
+
+				case 65: //A rotates ship left
+					rotateShipLeft(true);
+					break;
+
+				case 68: //D rotates ship right
+					rotateShipRight(true);
+					break;
+
+				case 83: //S ups the ship's pitch
+					pitchShipUp(true);
+					break;
+
+				case 87: //w downs the ship's pitch
+					pitchShipDown(true);
+					break;
+
+				case 81: //q banks left
+					bankShipLeft(true);
+					break;
+
+				case 69: //69 banks right (it banks a couple other things too ;)
+					bankShipRight(true);
+					break;
+    }
+};
+
+document.onkeyup = function move(e) {
+    switch (e.keyCode) {
+				case 65: //A rotates ship left
+					rotateShipLeft(false);
+					break;
+
+				case 68: //D rotates ship right
+					rotateShipRight(false);
+					break;
+
+				case 83: //S ups the ship's pitch
+					pitchShipUp(false);
+					break;
+
+				case 87: //w downs the ship's pitch
+					pitchShipDown(false);
+					break;
+
+				case 81: //q banks left
+					bankShipLeft(false);
+					break;
+
+				case 69: //69 banks right (it banks a couple other things too ;)
+					bankShipRight(false);
+					break;
+
+
     }
 };
 
 try {
   	init();
+		initHUD();
   	fillScene();
- 		addToDOM();
   	animate();
 
 } catch(error) {
