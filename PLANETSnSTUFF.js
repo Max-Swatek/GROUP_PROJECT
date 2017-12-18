@@ -28,8 +28,7 @@ class Planet{
 }
 var frameNum = 0;
 
-var camera, scene, cameraHUD, sceneHUD, hudBitmap, hudTexture, renderer;
-var laserBeams = [];
+var camera, scene, cameraHUD, sceneHUD, hudBitmap, hudTexture, laserBeam, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
 
@@ -265,14 +264,14 @@ const drawMainShip = () => {
 
 const fireLaser = () => {
 	//Add the laza's
-	const laser = new THREEx.LaserBeam().object3d
+	laserBeam = new THREEx.LaserBeam().object3d
+	laserBeam.scale.set(1000, 5, 5);
+	laserBeam.rotation.y = (Math.PI / 2);
+		mainShip.add(laserBeam);
+}
 
-	//laser.position.copy(mainShip.position);
-	laser.scale.set(10, 5, 5);
-	laser.rotation.y = (Math.PI / 2);
-	//scene.add(laser);
-	mainShip.add(laser);
-	laserBeams.push(laser);
+const hideLaser = () => {
+	mainShip.remove(laserBeam);
 }
 
 
@@ -482,10 +481,6 @@ function render() {
 	if (mainShip) {
 	 moveMainShip(delta);
 	}
-
-	if (laserBeams && laserBeams.length > 0) {
-		moveLasers();
-	}
 }
 
 const moveParticles = () => {
@@ -502,11 +497,7 @@ const moveParticles = () => {
  particleGeometry.verticesNeedUpdate = true;
 }
 
-const moveLasers = () => {
-	for (const i in laserBeams) {
-		laserBeams[i].translateX(5);
-	}
-}
+
 const moveMainShip = (delta) => {
 	const steeringSpeed = .3 + (((mainShip.speed * .3) + 0.001)/ (mainShip.maxSpeed + .001)); //can move quicker at higher speeds
 
@@ -652,6 +643,9 @@ document.onkeydown = function move(e) {
 
 document.onkeyup = function move(e) {
     switch (e.keyCode) {
+				case 32:
+					hideLaser();
+					break;
 
 				case 65: //A rotates ship left
 					rotateShipLeft(false);
