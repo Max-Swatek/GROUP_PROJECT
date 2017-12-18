@@ -67,36 +67,25 @@ function fillScene() {
 	drawSkyBox();
 
 	//The planets
-
-	var got = drawPlanet({ x:550, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true });
-	planets.push(got);
-
-
-	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius, folder:'gasGiant1', atmosphere:true, rings:true });
-	planets.push(gasGiant);
-
-	var moon = drawPlanet({ x:500, y:0, z:1050, radius:planetRadius, folder:'moon'});
-	planets.push(moon);
-
-	var poke = drawPlanet({ x:650, y:0, z:1000, radius:planetRadius, folder:'PokeMap', atmosphere:true });
-	planets.push(poke);
-
-	var volcano = drawPlanet({ x:600, y:0, z:1050, radius:planetRadius, folder:'tatooine', atmosphere:true });
+	//a venus like thick atmosphered terestrial
+	var volcano = drawPlanet({ x:650, y:0, z:0, radius:planetRadius, folder:'tatooine', atmosphere:true });
 	planets.push(volcano);
 
-	var alt = drawPlanet({ x:650, y:0, z:1050, radius:planetRadius, folder:'altEarth', atmosphere:true });
-	planets.push(alt);
+	var poke = drawPlanet({ x:750, y:0, z:0, radius:planetRadius, folder:'PokeMap', atmosphere:true,numMoons:1 });
+	planets.push(poke);
 
-	var Ringly = drawPlanet({ x:500, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
+	var got = drawPlanet({ x:850, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true, numMoons:2 });
+	planets.push(got);
+
+	var Ringly = drawPlanet({ x:1050, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
 	planets.push(Ringly);
-
 
 	for (const i in planets) {
 		scene.add(planets[i].tether);
 	}
 
 	//the dust
-	drawParticles({ minX: 250, maxX: 750, minY: -200, maxY: 200, minZ: 750, maxZ: 1250, numParticles: 5000 });
+	drawParticles({ minX: -1000, maxX: 1000, minY: -150, maxY: 150, minZ: -1000, maxZ: 1000, numParticles: 5000 });
 
 }
 
