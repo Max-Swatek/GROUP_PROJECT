@@ -326,7 +326,9 @@ function render() {
 
 	skybox.rotation.z  -= 1/64 * delta;//faking orbits
 	//rotate planet
-	planets[current].animate(delta);
+	for(let i=0; i<planets.length; i++){
+		planets[i].animate(delta);
+	}
 	//only move particles every second frame because eficiency
 	if (frameNum % 2 === 0)
 	 moveParticles();
