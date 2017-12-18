@@ -28,7 +28,7 @@ class Planet{
 }
 var frameNum = 0;
 
-var camera, scene, cameraHUD, sceneHUD, hudBitmap, hudTexture, renderer;
+var camera, scene, cameraHUD, sceneHUD, hudBitmap, hudTexture, laserBeam, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
 
@@ -249,10 +249,24 @@ const drawMainShip = () => {
 
 					mainShip.speed = 1;
 
+				//Add the camera
 				mainShip.add(camera);
+
         scene.add( mainShip );
 			});
 
+}
+
+const fireLaser = () => {
+	//Add the laza's
+	laserBeam = new THREEx.LaserBeam().object3d
+	laserBeam.scale.set(1000, 5, 5);
+	laserBeam.rotation.y = (Math.PI / 2);
+		mainShip.add(laserBeam);
+}
+
+const hideLaser = () => {
+	mainShip.remove(laserBeam);
 }
 
 
@@ -574,12 +588,15 @@ function targetWorld(){
 
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
-				case 32:
-					//targetWorld();
+
+				case 32: //space fires laser
+					fireLaser();
 					break;
+
 				case 80://p for planet
 					targetWorld();
 					break;
+
 				case 77://m for moons
 
 					break;
@@ -621,6 +638,10 @@ document.onkeydown = function move(e) {
 
 document.onkeyup = function move(e) {
     switch (e.keyCode) {
+				case 32:
+					hideLaser();
+					break;
+
 				case 65: //A rotates ship left
 					rotateShipLeft(false);
 					break;
