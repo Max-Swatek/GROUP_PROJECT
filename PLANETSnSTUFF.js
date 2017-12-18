@@ -2,23 +2,28 @@
 'user strict'
 
 class Planet{
-	constructor({base, atmosphere, rings}){
+
+	constructor({base, atmosphere, rings, moons, tether}){
 		this.base = base;
 		this.atmosphere = atmosphere;
 		this.rings = rings;
-		// this.moons = [];
+		this.moons = moons;
+		this.tether = tether;
+		this.orbit = 1/((base.position.x)/4);
 	}
-	addMoon(moon){
-		// moons.push(moon);
-	}
+
 	animate(delta){
+		this.tether.rotation.y += this.orbit * delta;
 		this.base.rotation.y  += 1/32 * delta;
 		if(this.atmosphere){
 			this.atmosphere.rotation.y  += 1/16 * delta;
 		}
-		// for(var i=0; i<moons.length; i++){
-		// 	moons[i].animate(delta);
-		// }
+
+		if(this.moons){
+			for(let i=0; i<this.moons.length; i++){
+				this.moons[i].animate(delta);
+			}
+		}
 	}
 }
 var frameNum = 0;
@@ -27,14 +32,11 @@ var camera, scene, renderer;
 var cameraControls;
 var clock = new THREE.Clock();
 
-var planetMesh;
-var cloudMesh;
-
 var lightConstant = 1.5;
-var planetRadius = 1;
+var planetRadius = 1; // for an average planet
 
 var cameraMinDistance = planetRadius*2.5;
-var cameraMaxDistance = 5000;
+var cameraMaxDistance = planetRadius*3000;
 
 var skybox;
 
@@ -65,12 +67,11 @@ function fillScene() {
 	drawSkyBox();
 
 	//The planets
-	var ringly = drawPlanet({ x:500, y:0, z:1000, radius:planetRadius, folder:'ringly', atmosphere:true, rings:true });
-	planets.push(ringly);
 
-	var got = drawPlanet({ x:550, y:0, z:1050, radius:planetRadius, folder:'GoT', atmosphere:true });
+	var got = drawPlanet({ x:550, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(got);
 
+<<<<<<< HEAD
 	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius, folder:'gasGiant1', atmosphere:true, rings:true });
 	planets.push(gasGiant);
 
@@ -85,9 +86,13 @@ function fillScene() {
 
 	var alt = drawPlanet({ x:650, y:0, z:1050, radius:planetRadius, folder:'altEarth', atmosphere:true });
 	planets.push(alt);
+=======
+	var Ringly = drawPlanet({ x:500, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
+	planets.push(Ringly);
+>>>>>>> origin/Sarah-Shenanigans
 
 	for (const i in planets) {
-		scene.add(planets[i].base);
+		scene.add(planets[i].tether);
 	}
 
 	//the dust
@@ -145,23 +150,23 @@ function drawSkyBox(){
 	scene.add(skybox);
 }
 
-function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons, tether}) {
-	var planetGeometry = new THREE.SphereGeometry(radius,32,32);
-	var planetMaterial = new THREE.MeshPhongMaterial();
+function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
+	let planetGeometry = new THREE.SphereGeometry(radius,32,32);
+	let planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
 	planetMaterial.bumpMap = new THREE.TextureLoader().load(`/Textures/${folder}/bump.jpg`);
 	planetMaterial.bumpScale = radius;
 	planetMaterial.specularMap = new THREE.TextureLoader().load(`/Textures/${folder}/spec.jpg`);
 	planetMaterial.specular = new THREE.Color('grey');
 
-	planetMesh = new THREE.Mesh(planetGeometry,planetMaterial);
+	let planetMesh = new THREE.Mesh(planetGeometry,planetMaterial);
 	planetMesh.position.x = x;
 	planetMesh.position.y = y+radius;
 	planetMesh.position.z = z;
 
 	let cloudMesh = null;
 	let ringMesh = null;
-
+	let moons = null;
 
 	//If there's an atomasphere, add one!
 	if(atmosphere){
@@ -175,10 +180,34 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons, tether}
 		planetMesh.add(ringMesh);
 	}
 
-	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh});
+	//If theres an amount of moons requiered, add them
+	if(numMoons){
+		moons = [];
+		let minOrbit = radius*6
+		for(let i=numMoons; i>0; i--){
+			let moonRadius = (radius/16)*(1+(Math.random()*3));
+			//radius*(i+1)*((Math.random()*3)+1)+moonRadius
+			let moon = drawPlanet({x:minOrbit+i*(radius+ moonRadius), y:-moonRadius, z:0, radius:moonRadius, folder:'moon'})
+			planetMesh.add(moon.tether);
+			moons.push(moon);
+		}
+	}
+	let tether = makeTether();
+	//tether.add(planetMesh);
+	const planet = new Planet({base:planetMesh, atmosphere:cloudMesh, rings:ringMesh, moons:moons, tether:tether});
+	planet.tether.add(planet.base);
 	return planet;
 }
-
+function makeTether(){
+	let tether = new THREE.Mesh(
+		new THREE.SphereGeometry(planetRadius/10, 5, 5),
+		textureLoader.load( "/Textures/particles/ParticleTexture.png" )
+	);
+	tether.position.x = 0;
+	tether.position.y = 0;
+	tether.position.z = 0;
+	return tether;
+}
 const makeAtmosphere = ({radius, folder}) => {
 
 	var geometry = new THREE.SphereGeometry(radius, 32, 32);
@@ -284,8 +313,7 @@ function init() {
 	// Moving the camera with the mouse is simple enough - so this is provided. However, note that by default,
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-	camera.position.set( 600, planetRadius, 1100);
-	cameraControls.target.set(500, planetRadius, 1000);
+	camera.position.set( planetRadius*25, planetRadius*5, 0);
 	cameraControls.minDistance = cameraMinDistance;
 	cameraControls.maxDistance = cameraMaxDistance;
 }
@@ -313,9 +341,11 @@ function render() {
 	//skybox.position = camera.position;
 	//TWEEN.update();
 
-	skybox.rotation.y  += 1/64 * delta;
+	skybox.rotation.z  -= 1/64 * delta;//faking orbits
 	//rotate planet
-	planets[current].animate(delta);
+	for(let i=0; i<planets.length; i++){
+		planets[i].animate(delta);
+	}
 	//only move particles every second frame because eficiency
 	if (frameNum % 2 === 0)
 	 moveParticles();
@@ -338,17 +368,26 @@ const moveParticles = () => {
 function targetWorld(){
 	current += 1;
 	var index = current%planets.length
-	cameraControls.target.set(planets[index].base.position.x, planets[index].base.position.y, planets[index].base.position.z);
+	const planet = planets[index];
+
+	planets[index].base.add(camera);
+	camera.position.set( planetRadius*25, planetRadius*5, 0);
+
 	current = index;
 }
+
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
         case 32:
-            targetWorld();
+            //targetWorld();
         break;
+				case 80://p for planet
+						targetWorld();
+				break;
+				case 77://m for moons
+
+				break;
     }
-
-
 };
 
 try {
