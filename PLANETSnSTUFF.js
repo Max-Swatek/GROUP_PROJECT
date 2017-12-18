@@ -80,6 +80,9 @@ function fillScene() {
 	var Ringly = drawPlanet({ x:1050, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
 	planets.push(Ringly);
 
+	var Ringly1 = drawPlanet({ x:1550, y:0, z:0, radius:planetRadius*6, folder:'gasGiant2', atmosphere:true, rings:true, numMoons:10 });
+	planets.push(Ringly1);
+
 	for (const i in planets) {
 		scene.add(planets[i].tether);
 	}
