@@ -268,7 +268,7 @@ const fireLaser = () => {
 
 	//laser.position.copy(mainShip.position);
 	laser.scale.set(10, 5, 5);
-	laser.rotation.y = Math.PI;
+	laser.rotation.y = (Math.PI / 2);
 	//scene.add(laser);
 	mainShip.add(laser);
 	laserBeams.push({ laser, time: new THREE.Clock() });
@@ -352,7 +352,8 @@ function init() {
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
 
-	camera.position.set( planetRadius*25, planetRadius*5, 0);
+	camera.position.set( 0, planetRadius*5, planetRadius*25);
+
 	cameraControls.minDistance = cameraMinDistance;
 	cameraControls.maxDistance = cameraMaxDistance;
 
@@ -515,23 +516,23 @@ const moveMainShip = (delta) => {
 	const steeringSpeed = .3 + (((mainShip.speed * .3) + 0.001)/ (mainShip.maxSpeed + .001)); //can move quicker at higher speeds
 
 	if (mainShip.speed > mainShip.minSpeed) {
-		mainShip.translateX(-(((mainShip.speed / speedIntervals) * (mainShip.maxSpeed - mainShip.minSpeed)) + mainShip.minSpeed));
+		mainShip.translateZ(-(((mainShip.speed / speedIntervals) * (mainShip.maxSpeed - mainShip.minSpeed)) + mainShip.minSpeed));
 	}
 
 	if (mainShip.rotateLeft) {
-		mainShip.rotateX(1 * steeringSpeed * delta);
+		mainShip.rotateZ(1 * steeringSpeed * delta);
 	}
 
 	else if (mainShip.rotateRight) {
-		mainShip.rotateX(-1 * steeringSpeed * delta);
-	}
-
-	if (mainShip.pitchUp) {
 		mainShip.rotateZ(-1 * steeringSpeed * delta);
 	}
 
+	if (mainShip.pitchUp) {
+		mainShip.rotateX(1 * steeringSpeed * delta);
+	}
+
 	else if (mainShip.pitchDown) {
-		mainShip.rotateZ(1 * steeringSpeed * delta);
+		mainShip.rotateX(-1 * steeringSpeed * delta);
 	}
 
 	if (mainShip.bankLeft) {
