@@ -269,9 +269,19 @@ const fireLaser = () => {
 	//laser.position.copy(mainShip.position);
 	laser.scale.set(10, 5, 5);
 	laser.rotation.y = (Math.PI / 2);
+	laser.position.x = -1;
+
+	const laser2 = new THREEx.LaserBeam().object3d
+
+	//laser.position.copy(mainShip.position);
+	laser2.scale.set(10, 5, 5);
+	laser2.rotation.y = (Math.PI / 2);
+	laser2.position.x = 1;
+
 	//scene.add(laser);
 	mainShip.add(laser);
-	laserBeams.push({ laser, time: new THREE.Clock() });
+	mainShip.add(laser2);
+	laserBeams.push({ laser, laser2, time: new THREE.Clock() });
 }
 
 
@@ -508,6 +518,7 @@ const moveLasers = (delta) => {
 		//don't move it if it's far enough away
 		if (laser.time.getElapsedTime() < 4 ) {
 			laserBeams[i].laser.translateX(5);
+			laserBeams[i].laser2.translateX(5);
 		}
 
 	}
