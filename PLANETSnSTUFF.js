@@ -71,7 +71,7 @@ function fillScene() {
 	var got = drawPlanet({ x:550, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true });
 	planets.push(got);
 
-<<<<<<< HEAD
+
 	var gasGiant = drawPlanet({ x:550, y:0, z:1000, radius:planetRadius, folder:'gasGiant1', atmosphere:true, rings:true });
 	planets.push(gasGiant);
 
@@ -86,10 +86,10 @@ function fillScene() {
 
 	var alt = drawPlanet({ x:650, y:0, z:1050, radius:planetRadius, folder:'altEarth', atmosphere:true });
 	planets.push(alt);
-=======
+
 	var Ringly = drawPlanet({ x:500, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
 	planets.push(Ringly);
->>>>>>> origin/Sarah-Shenanigans
+
 
 	for (const i in planets) {
 		scene.add(planets[i].tether);
