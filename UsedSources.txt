@@ -8,6 +8,9 @@ https://codepen.io/jaamo/pen/MaOGZV
 http://frederickhiggins.com/celestia/index_htm_files/8505.jpg
 	^^tatooine texture (was altered further in Photoshop)
 
+https://github.com/jeromeetienne/threex.laser
+	^^Three JS laser plug in.  Oh yeah!
+
 
 Software Used:
 Photoshop CC
