@@ -50,6 +50,7 @@ const maxZ = 1250;
 
 //millenium falcon
 let mainShip;
+const speedIntervals = 6;
 
 Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
@@ -200,9 +201,8 @@ const drawMainShip = () => {
 
 					mainShip.maxSpeed = 2;
 					mainShip.minSpeed = 0;
-					mainShip.speedIntervals = 6;
 
-					mainShip.speed = mainShip.minSpeed + 1;
+					mainShip.speed = 1;
 
 				mainShip.add(camera);
         scene.add( mainShip );
@@ -311,7 +311,6 @@ function init() {
 	  // Get 2D context and draw something supercool.
 
 	  hudBitmap = hudCanvas.getContext('2d');
-		drawHUD();
 
 	  // Create the camera and set the viewport to match the screen dimensions.
 	  cameraHUD = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0, 30 );
@@ -321,7 +320,9 @@ function init() {
 
 		// Create texture from rendered graphics.
 		hudTexture = new THREE.Texture(hudCanvas)
-		hudTexture.needsUpdate = true;
+
+		//draw theHUD
+		drawHUD();
 
 	  // Create HUD material.
 
@@ -346,23 +347,28 @@ const drawHUD = () => {
 
 	let numBars = 1;
 	if (mainShip) numBars = mainShip.speed;
+	const colors = ['#45F442', '#ADF442', '#F4F442', '#F4D142', '#F48042', '#F24135'];
 
+	//draw speed bars
 	for (let i = 0; i < numBars; i++) {
-		let color = '#45F442';
-		if (i === 1) color = '#ADF442';
-		if (i ===2) color = '#F4F442';
-		if (i === 3) color = '#F4D142';
-		if (i === 4) color = '#F48042';
-		if (i === 5) color = '#F24135';
 
 		hudBitmap.beginPath();
 		hudBitmap.rect(125 + (i * 15), height-53, 10, 25);
-		hudBitmap.fillStyle = color;
+		hudBitmap.fillStyle = colors[i];
 		hudBitmap.fill();
 	}
 
-	if (hudTexture) hudTexture.needsUpdate = true;
+	//draw empty speed bars
+	for (let i = 0; i < speedIntervals; i++) {
 
+		hudBitmap.beginPath();
+		hudBitmap.rect(125 + (i * 15), height-53, 10, 25);
+		hudBitmap.strokeStyle = colors[i];
+		hudBitmap.lineWidth = "2";
+		hudBitmap.stroke();
+	}
+
+	hudTexture.needsUpdate = true;
 }
 
 /*
@@ -407,8 +413,10 @@ function render() {
 	if (frameNum % 2 === 0) {
 	 moveParticles();
  }
+
+ //moves the ship and rotates if applicable
 	if (mainShip) {
-	 moveMainShip();
+	 moveMainShip(delta);
 	}
 }
 
@@ -427,14 +435,40 @@ const moveParticles = () => {
 	}
 }
 
-const moveMainShip = () => {
+const moveMainShip = (delta) => {
+	const steeringSpeed = .3 + (((mainShip.speed * .3) + 0.001)/ (mainShip.maxSpeed + .001)); //can move quicker at higher speeds
+
 	if (mainShip.speed > mainShip.minSpeed) {
-		mainShip.translateZ(-((mainShip.speed * (mainShip.maxSpeed - mainShip.minSpeed)) + mainShip.minSpeed));
+		mainShip.translateZ(-(((mainShip.speed / speedIntervals) * (mainShip.maxSpeed - mainShip.minSpeed)) + mainShip.minSpeed));
+	}
+
+	if (mainShip.rotateLeft) {
+		mainShip.rotateZ(1 * steeringSpeed * delta);
+	}
+
+	else if (mainShip.rotateRight) {
+		mainShip.rotateZ(-1 * steeringSpeed * delta);
+	}
+
+	if (mainShip.pitchUp) {
+		mainShip.rotateX(1 * steeringSpeed * delta);
+	}
+
+	else if (mainShip.pitchDown) {
+		mainShip.rotateX(-1 * steeringSpeed * delta);
+	}
+
+	if (mainShip.bankLeft) {
+		mainShip.rotateY(1 * steeringSpeed * delta);
+	}
+
+	else if (mainShip.bankRight) {
+		mainShip.rotateY(-1 * steeringSpeed * delta);
 	}
 }
 
 const speedUpShip = () => {
-	if (mainShip && mainShip.speed < mainShip.speedIntervals) {
+	if (mainShip && mainShip.speed < speedIntervals) {
 		mainShip.speed ++;
 		drawHUD();
 	}
@@ -447,12 +481,49 @@ const slowDownShip = () => {
 	}
 }
 
+const rotateShipLeft = (pressed) => {
+	if (mainShip) {
+		mainShip.rotateLeft = pressed;
+	}
+}
+
+const rotateShipRight = (pressed) => {
+	if (mainShip) {
+		mainShip.rotateRight = pressed;
+	}
+}
+
+const pitchShipUp = (pressed) => {
+	if (mainShip) {
+		mainShip.pitchUp = pressed;
+	}
+}
+
+const pitchShipDown = (pressed) => {
+	if (mainShip) {
+		mainShip.pitchDown = pressed;
+	}
+}
+
+const bankShipLeft = (pressed) => {
+	if (mainShip) {
+		mainShip.bankLeft = pressed;
+	}
+}
+
+const bankShipRight = (pressed) => {
+	if (mainShip) {
+		mainShip.bankRight = pressed;
+	}
+}
+
 function targetWorld(){
 	current += 1;
 	var index = current%planets.length
 	cameraControls.target.set(planets[index].base.position.x, planets[index].base.position.y, planets[index].base.position.z);
 	current = index;
 }
+
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
         case 32: //space bar switches view
@@ -465,6 +536,58 @@ document.onkeydown = function move(e) {
 
 				case 17: //control slows down ship
 					slowDownShip();
+					break;
+
+				case 65: //A rotates ship left
+					rotateShipLeft(true);
+					break;
+
+				case 68: //D rotates ship right
+					rotateShipRight(true);
+					break;
+
+				case 83: //S ups the ship's pitch
+					pitchShipUp(true);
+					break;
+
+				case 87: //w downs the ship's pitch
+					pitchShipDown(true);
+					break;
+
+				case 81: //q banks left
+					bankShipLeft(true);
+					break;
+
+				case 69: //69 banks right (it banks a couple other things too ;)
+					bankShipRight(true);
+					break;
+    }
+};
+
+document.onkeyup = function move(e) {
+    switch (e.keyCode) {
+				case 65: //A rotates ship left
+					rotateShipLeft(false);
+					break;
+
+				case 68: //D rotates ship right
+					rotateShipRight(false);
+					break;
+
+				case 83: //S ups the ship's pitch
+					pitchShipUp(false);
+					break;
+
+				case 87: //w downs the ship's pitch
+					pitchShipDown(false);
+					break;
+
+				case 81: //q banks left
+					bankShipLeft(false);
+					break;
+
+				case 69: //69 banks right (it banks a couple other things too ;)
+					bankShipRight(false);
 					break;
     }
 };
