@@ -20,7 +20,7 @@ const height = window.innerHeight
 var planetMesh;
 var cloudMesh;
 
-var lightConstant = 1.5;
+var lightConstant	 = 1.5;
 var planetRadius = 1;
 
 var cameraMinDistance = planetRadius*2.5;
