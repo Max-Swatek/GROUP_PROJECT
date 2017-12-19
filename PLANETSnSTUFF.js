@@ -35,13 +35,17 @@ var laserBeams = [];
 var cameraControls;
 var clock = new THREE.Clock();
 
+//background image
+var background = document.getElementById('menuBackground');
+
 //State variables:
 const menu_mode = 'MENU_MODE';
-const flight_mode = 'FLIGHT_MODE'; //menu item 0
-const planet_mode = 'PLANET_MODE'; //menu item 1
-const num_modes = 2;
+const flight_mode = 'FLIGHT_MODE';
+const planet_mode = 'PLANET_MODE'
+const menu_options = [flight_mode, planet_mode];
 
 let current_mode = menu_mode;
+
 let selected_menu_item = 0;
 
 const width = window.innerWidth;
@@ -261,13 +265,19 @@ const drawMainShip = () => {
 					mainShip.maxSpeed = 2;
 					mainShip.minSpeed = 0;
 
-					mainShip.speed = 1; //initial speed level, not speed number (ie which of the 0-5 between min and max)
+					mainShip.speed = 0; //initial speed level, not speed number (ie which of the 0-5 between min and max)
 				//Add the camera
 				mainShip.add(camera);
 
         scene.add( mainShip );
 			});
 
+}
+
+const startFlightMode = () => {
+	mainShip.speed = 1;
+	camera.position.set( 0, planetRadius*5, planetRadius*25);
+	mainShip.add(camera);
 }
 
 const fireLaser = () => {
@@ -411,8 +421,8 @@ function init() {
 		// Create texture from rendered graphics.
 		overlayTexture = new THREE.Texture(overlayCanvas)
 
-		//draw the pver;au
-		drawOverlay();
+		//draw the overlay
+		background.onload = () => drawOverlay();
 
 	  // Create overlay material.
 
@@ -428,12 +438,17 @@ function init() {
 }
 
 const drawOverlay = () => {
-	if (current_mode === menu_mode) {
+	if (current_mode === 'MENU_MODE') {
 		drawMenuOverlay();
 	}
 	else if (current_mode === flight_mode) {
 		drawFlightModeOverlay();
 	}
+	else if (current_mode === planet_mode) {
+		drawPlanetModeOverlay();
+	}
+
+	overlayTexture.needsUpdate = true;
 }
 
 const drawMenuOverlay = () => {
@@ -451,15 +466,13 @@ const drawMenuOverlay = () => {
 	// overlayBitmap.fillStyle = 'black';
 	// overlayBitmap.fill();
 
-	//background image
-	var background = document.getElementById('menuBackground');
-	background.onload = () => {
+
 		overlayBitmap.drawImage(background, 0, 0, width, height);
 		overlayBitmap.fill();
 
 		const text = ['Flight Mode', 'Planet Mode'];
 
-		for (let i = 0; i < num_modes; i ++) {
+		for (let i = 0; i < menu_options.length; i ++) {
 			overlayBitmap.beginPath();
 			overlayBitmap.rect((width / 2) - 100, (((i + 2) * height) - 150) /5, 200, 40);
 			if (i === selected_menu_item) {
@@ -480,12 +493,6 @@ const drawMenuOverlay = () => {
 			overlayBitmap.textAlign = 'center';
 			overlayBitmap.fillText(text[i], width/2, ((i + 2) * height) / 5);
 		}
-
-		overlayTexture.needsUpdate = true;
-	}
-
-	overlayTexture.needsUpdate = true;
-
 }
 
 const drawFlightModeOverlay = () => {
@@ -518,9 +525,13 @@ const drawFlightModeOverlay = () => {
 		overlayBitmap.lineWidth = "2";
 		overlayBitmap.stroke();
 	}
-
-	overlayTexture.needsUpdate = true;
 }
+
+const drawPlanetModeOverlay = () => {
+	//assumes a max of 6 speedbars
+	overlayBitmap.clearRect(0, 0, width, height);
+}
+
 /*
 **
 **
@@ -686,6 +697,17 @@ const bankShipRight = (pressed) => {
 	}
 }
 
+const modeSelected = (mode) => {
+	current_mode = mode;
+	if (current_mode === flight_mode) {
+		startFlightMode();
+	}
+	else if (current_mode === planet_mode) {
+		targetWorld();
+	}
+	drawOverlay();
+}
+
 function targetWorld(){
 	current += 1;
 	var index = current%planets.length
@@ -697,21 +719,54 @@ function targetWorld(){
 	current = index;
 }
 
+const mod = (n, m) => {
+        return ((n % m) + m) % m;
+}
+
+const resetMenu = () => {
+	selected_menu_item = 0;
+	mainShip.speed = 0;
+	current_mode = menu_mode;
+	drawOverlay();
+}
+
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
+				case 27: //escape key returns to menu
+					resetMenu();
+					break;
+
+				case 38: //up key moves menu
+					if (current_mode === menu_mode) {
+						 selected_menu_item = mod((selected_menu_item + 1), menu_options.length);
+						 drawOverlay();
+					}
+					break;
+
+				case 40: //down key moves menu
+					if (current_mode === menu_mode) {
+						selected_menu_item = mod((selected_menu_item - 1), menu_options.length);
+						drawOverlay();
+					}
+					break;
+
+				case 13: //enter key selects the current mode
+					modeSelected(menu_options[selected_menu_item]);
+					break;
 
 				case 32: //space fires laser
 					fireLaser();
 					break;
 
 				case 80://p for planet
-					targetWorld();
+					if (current_mode === planet_mode) {
+						targetWorld();
+					}
 					break;
 
 				case 77://m for moons
 
 					break;
-
 
 				case 16: //shift speeds up ship
 					speedUpShip();
