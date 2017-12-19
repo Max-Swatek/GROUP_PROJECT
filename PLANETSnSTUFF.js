@@ -35,8 +35,13 @@ var laserBeams = [];
 var cameraControls;
 var clock = new THREE.Clock();
 
+//for tracking images loaded on the menu screen
+let assetsLoaded = 0;
+const totalAssets = 2;
+
 //background image
 var background = document.getElementById('menuBackground');
+var logo = document.getElementById('logo');
 
 //State variables:
 const menu_mode = 'MENU_MODE';
@@ -282,8 +287,18 @@ const drawMainShip = () => {
 
 const startFlightMode = () => {
 	mainShip.speed = 1;
-	camera.position.set( 0, planetRadius, planetRadius*5 );
+	cameraControls.minDistance = cameraMinDistance / 4;
+	cameraControls.maxDistance = cameraMaxDistance / 20;
 	mainShip.add(camera);
+	camera.position.set( 0, 0, 20 );
+	console.log(camera);
+}
+
+const startPlanetMode = () => {
+	camera.position.set( planetRadius*25, planetRadius*5, 0);
+	cameraControls.minDistance = cameraMinDistance;
+	cameraControls.maxDistance = cameraMaxDistance;
+	targetWorld(); //move camera to a planet
 }
 
 const fireLaser = () => {
@@ -428,8 +443,16 @@ function init() {
 		// Create texture from rendered graphics.
 		overlayTexture = new THREE.Texture(overlayCanvas)
 
-		//draw the overlay
-		background.onload = () => drawOverlay();
+		//draw the overlay if everything is loaded
+		background.onload = () => {
+			assetsLoaded ++;
+			if (assetsLoaded === totalAssets) drawOverlay();
+		}
+
+		logo.onload = () => {
+			assetsLoaded ++;
+			if (assetsLoaded === totalAssets) drawOverlay();
+		}
 
 	  // Create overlay material.
 
@@ -467,36 +490,29 @@ const drawMenuOverlay = () => {
 
 	overlayBitmap.clearRect(0, 0, width, height);
 
-	//loading screen
-	// overlayBitmap.beginPath();
-	// overlayBitmap.rect(0, 0, width, height);
-	// overlayBitmap.fillStyle = 'black';
-	// overlayBitmap.fill();
-
-
+		//background image
 		overlayBitmap.drawImage(background, 0, 0, width, height);
 		overlayBitmap.fill();
 
+		//logo
+		overlayBitmap.drawImage(logo, 20, 0, 551, 434);
+		overlayBitmap.fill();
+
+		//menu text options
 		const text = ['Flight Mode', 'Planet Mode'];
 
+		//display each menu option
 		for (let i = 0; i < menu_options.length; i ++) {
+			//Highlited box around the menu items
 			overlayBitmap.beginPath();
 			overlayBitmap.rect((width / 2) - 100, (((i + 2) * height) - 150) /5, 200, 40);
-			if (i === selected_menu_item) {
-				overlayBitmap.fillStyle = selectedColor;
-			}
-			else {
-				overlayBitmap.fillStyle = nonSelectedColor;
-			}
+			//format selected item differently
+			overlayBitmap.fillStyle = i === selected_menu_item ? selectedColor : nonSelectedColor;
 			overlayBitmap.fill();
 
+			//Text
 			overlayBitmap.font = "Normal 30px Arial";
-			if (i === selected_menu_item) {
-				overlayBitmap.fillStyle = selectedTextColor;
-			}
-			else {
-				overlayBitmap.fillStyle = nonSelectedTextColor;
-			}
+			overlayBitmap.fillStyle = i === selected_menu_item ? selectedTextColor : nonSelectedTextColor;
 			overlayBitmap.textAlign = 'center';
 			overlayBitmap.fillText(text[i], width/2, ((i + 2) * height) / 5);
 		}
@@ -508,7 +524,7 @@ const drawFlightModeOverlay = () => {
 
 	overlayBitmap.font = "Normal 30px Arial";
 	overlayBitmap.fillStyle = "rgba(245,245,245,0.75)";
-	overlayBitmap.fillText('Speed:', 20, height - 30);
+	overlayBitmap.fillText('Speed:', 60, height - 30);
 
 	let numBars = 1;
 	if (mainShip) numBars = mainShip.speed;
@@ -535,7 +551,7 @@ const drawFlightModeOverlay = () => {
 }
 
 const drawPlanetModeOverlay = () => {
-	//assumes a max of 6 speedbars
+	//Is an empty overlay really an overlay?
 	overlayBitmap.clearRect(0, 0, width, height);
 }
 
@@ -710,7 +726,7 @@ const modeSelected = (mode) => {
 		startFlightMode();
 	}
 	else if (current_mode === planet_mode) {
-		targetWorld();
+		startPlanetMode();
 	}
 	drawOverlay();
 }
