@@ -30,11 +30,23 @@ class Planet{
 }
 var frameNum = 0;
 
-var camera, scene, cameraHUD, sceneHUD, hudBitmap, hudTexture, renderer;
+var camera, scene, cameraOverlay, sceneOverlay, overlayBitmap, overlayTexture, renderer;
 var laserBeams = [];
 var cameraControls;
 var clock = new THREE.Clock();
 
+//background image
+var background = document.getElementById('menuBackground');
+
+//State variables:
+const menu_mode = 'MENU_MODE';
+const flight_mode = 'FLIGHT_MODE';
+const planet_mode = 'PLANET_MODE'
+const menu_options = [flight_mode, planet_mode];
+
+let current_mode = menu_mode;
+
+let selected_menu_item = 0;
 
 const width = window.innerWidth;
 const height = window.innerHeight
@@ -259,13 +271,19 @@ const drawMainShip = () => {
 					mainShip.maxSpeed = 2;
 					mainShip.minSpeed = 0;
 
-					mainShip.speed = 1; //initial speed level, not speed number (ie which of the 0-5 between min and max)
+					mainShip.speed = 0; //initial speed level, not speed number (ie which of the 0-5 between min and max)
 				//Add the camera
 				mainShip.add(camera);
 
         scene.add( mainShip );
 			});
 
+}
+
+const startFlightMode = () => {
+	mainShip.speed = 1;
+	camera.position.set( 0, planetRadius*5, planetRadius*25);
+	mainShip.add(camera);
 }
 
 const fireLaser = () => {
@@ -386,53 +404,111 @@ function init() {
 /*
 **
 **
-** HUD
+** Overlay
 **
 **
 */
-	const initHUD = () => {
-		var hudCanvas = document.createElement('canvas');
+	const initOverlay = () => {
+		var overlayCanvas = document.createElement('canvas');
 
 	  // Again, set dimensions to fit the screen.
-	  hudCanvas.width = width;
-	  hudCanvas.height = height;
+	  overlayCanvas.width = width;
+	  overlayCanvas.height = height;
 
 	  // Get 2D context and draw something supercool.
 
-	  hudBitmap = hudCanvas.getContext('2d');
+	  overlayBitmap = overlayCanvas.getContext('2d');
 
 	  // Create the camera and set the viewport to match the screen dimensions.
-	  cameraHUD = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0, 30 );
+	  cameraOverlay = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0, 30 );
 
-	  // Create also a custom scene for HUD.
-	  sceneHUD = new THREE.Scene();
+	  // Create also a custom scene for Overlay.
+	  sceneOverlay = new THREE.Scene();
 
 		// Create texture from rendered graphics.
-		hudTexture = new THREE.Texture(hudCanvas)
+		overlayTexture = new THREE.Texture(overlayCanvas)
 
-		//draw theHUD
-		drawHUD();
+		//draw the overlay
+		background.onload = () => drawOverlay();
 
-	  // Create HUD material.
+	  // Create overlay material.
 
 		increase = Math.PI * 2 / 100
-	  var material = new THREE.MeshBasicMaterial( {map: hudTexture} );
+	  var material = new THREE.MeshBasicMaterial( {map: overlayTexture} );
 	  material.transparent = true;
 
-	  // Create plane to render the HUD. This plane fill the whole screen.
+	  // Create plane to render the overlay. This plane fill the whole screen.
 	  var planeGeometry = new THREE.PlaneGeometry( width, height );
 	  var plane = new THREE.Mesh( planeGeometry, material );
-	  sceneHUD.add( plane );
+	  sceneOverlay.add( plane );
 
 }
 
-const drawHUD = () => {
-	//assumes a max of 6 speedbars
-	hudBitmap.clearRect(0, 0, width, height);
+const drawOverlay = () => {
+	if (current_mode === 'MENU_MODE') {
+		drawMenuOverlay();
+	}
+	else if (current_mode === flight_mode) {
+		drawFlightModeOverlay();
+	}
+	else if (current_mode === planet_mode) {
+		drawPlanetModeOverlay();
+	}
 
-	hudBitmap.font = "Normal 30px Arial";
-	hudBitmap.fillStyle = "rgba(245,245,245,0.75)";
-	hudBitmap.fillText('Speed:', 20, height - 30);
+	overlayTexture.needsUpdate = true;
+}
+
+const drawMenuOverlay = () => {
+	const selectedColor = 'rgba(245,245,245,0.9)';
+	const nonSelectedColor = 'rgba(50, 50, 50, 0.9)';
+
+	const selectedTextColor = 'rgba(50, 50, 50, 0.9)';
+	const nonSelectedTextColor = 'rgba(245,245,245,0.9)';
+
+	overlayBitmap.clearRect(0, 0, width, height);
+
+	//loading screen
+	// overlayBitmap.beginPath();
+	// overlayBitmap.rect(0, 0, width, height);
+	// overlayBitmap.fillStyle = 'black';
+	// overlayBitmap.fill();
+
+
+		overlayBitmap.drawImage(background, 0, 0, width, height);
+		overlayBitmap.fill();
+
+		const text = ['Flight Mode', 'Planet Mode'];
+
+		for (let i = 0; i < menu_options.length; i ++) {
+			overlayBitmap.beginPath();
+			overlayBitmap.rect((width / 2) - 100, (((i + 2) * height) - 150) /5, 200, 40);
+			if (i === selected_menu_item) {
+				overlayBitmap.fillStyle = selectedColor;
+			}
+			else {
+				overlayBitmap.fillStyle = nonSelectedColor;
+			}
+			overlayBitmap.fill();
+
+			overlayBitmap.font = "Normal 30px Arial";
+			if (i === selected_menu_item) {
+				overlayBitmap.fillStyle = selectedTextColor;
+			}
+			else {
+				overlayBitmap.fillStyle = nonSelectedTextColor;
+			}
+			overlayBitmap.textAlign = 'center';
+			overlayBitmap.fillText(text[i], width/2, ((i + 2) * height) / 5);
+		}
+}
+
+const drawFlightModeOverlay = () => {
+	//assumes a max of 6 speedbars
+	overlayBitmap.clearRect(0, 0, width, height);
+
+	overlayBitmap.font = "Normal 30px Arial";
+	overlayBitmap.fillStyle = "rgba(245,245,245,0.75)";
+	overlayBitmap.fillText('Speed:', 20, height - 30);
 
 	let numBars = 1;
 	if (mainShip) numBars = mainShip.speed;
@@ -441,29 +517,32 @@ const drawHUD = () => {
 	//draw speed bars
 	for (let i = 0; i < numBars; i++) {
 
-		hudBitmap.beginPath();
-		hudBitmap.rect(125 + (i * 15), height-53, 10, 25);
-		hudBitmap.fillStyle = colors[i];
-		hudBitmap.fill();
+		overlayBitmap.beginPath();
+		overlayBitmap.rect(125 + (i * 15), height-53, 10, 25);
+		overlayBitmap.fillStyle = colors[i];
+		overlayBitmap.fill();
 	}
 
 	//draw empty speed bars
 	for (let i = 0; i < speedIntervals; i++) {
 
-		hudBitmap.beginPath();
-		hudBitmap.rect(125 + (i * 15), height-53, 10, 25);
-		hudBitmap.strokeStyle = colors[i];
-		hudBitmap.lineWidth = "2";
-		hudBitmap.stroke();
+		overlayBitmap.beginPath();
+		overlayBitmap.rect(125 + (i * 15), height-53, 10, 25);
+		overlayBitmap.strokeStyle = colors[i];
+		overlayBitmap.lineWidth = "2";
+		overlayBitmap.stroke();
 	}
+}
 
-	hudTexture.needsUpdate = true;
+const drawPlanetModeOverlay = () => {
+	//assumes a max of 6 speedbars
+	overlayBitmap.clearRect(0, 0, width, height);
 }
 
 /*
 **
 **
-** End HUD
+** End Overlay
 **
 **
 */
@@ -472,10 +551,10 @@ const drawHUD = () => {
 function animate() {
 	window.requestAnimationFrame(animate);
 
-	// // Update HUD graphics.
-  // 	hudBitmap.clearRect(0, 0, width, height);
-  //   hudBitmap.fillText("RAD [x:", width / 2, height / 2); //+(cube.rotation.x % (2 * Math.PI)).toFixed(1)+", y:"+(cube.rotation.y % (2 * Math.PI)).toFixed(1)+", z:"+(cube.rotation.z % (2 * Math.PI)).toFixed(1)+"]" , width / 2, height / 2);
-  //   hudTexture.needsUpdate = true;
+	// // Update Overlay graphics.
+  // 	overlayBitmap.clearRect(0, 0, width, height);
+  //   overlayBitmap.fillText("RAD [x:", width / 2, height / 2); //+(cube.rotation.x % (2 * Math.PI)).toFixed(1)+", y:"+(cube.rotation.y % (2 * Math.PI)).toFixed(1)+", z:"+(cube.rotation.z % (2 * Math.PI)).toFixed(1)+"]" , width / 2, height / 2);
+  //   overlayTexture.needsUpdate = true;
 
 	render();
 }
@@ -488,10 +567,11 @@ function render() {
 	cameraControls.update(delta);
 	//cameraControls.target.set(planets[current].base.position.x, planets[current].base.position.y, planets[current].base.position.z);
 	renderer.render(scene, camera);
+	renderer.render(sceneOverlay, cameraOverlay);
 
-	renderer.render(sceneHUD, cameraHUD);
-
-	skybox.rotation.z  -= 1/64 * delta;//faking orbits
+	if (skybox) {
+		skybox.rotation.z  -= 1/64 * delta;//faking orbits
+	}
 	//rotate planet
 	for(let i=0; i<planets.length; i++){
 		planets[i].animate(delta);
@@ -577,14 +657,14 @@ const moveMainShip = (delta) => {
 const speedUpShip = () => {
 	if (mainShip && mainShip.speed < speedIntervals) {
 		mainShip.speed ++;
-		drawHUD();
+		drawOverlay();
 	}
 }
 
 const slowDownShip = () => {
 	if (mainShip && (mainShip.speed / (mainShip.maxSpeed - mainShip.minSpeed)) > mainShip.minSpeed) {
 		mainShip.speed --;
-		drawHUD();
+		drawOverlay();
 	}
 }
 
@@ -624,6 +704,17 @@ const bankShipRight = (pressed) => {
 	}
 }
 
+const modeSelected = (mode) => {
+	current_mode = mode;
+	if (current_mode === flight_mode) {
+		startFlightMode();
+	}
+	else if (current_mode === planet_mode) {
+		targetWorld();
+	}
+	drawOverlay();
+}
+
 function targetWorld(){
 	current += 1;
 	var index = current%planets.length
@@ -635,21 +726,54 @@ function targetWorld(){
 	current = index;
 }
 
+const mod = (n, m) => {
+        return ((n % m) + m) % m;
+}
+
+const resetMenu = () => {
+	selected_menu_item = 0;
+	mainShip.speed = 0;
+	current_mode = menu_mode;
+	drawOverlay();
+}
+
 document.onkeydown = function move(e) {
     switch (e.keyCode) {
+				case 27: //escape key returns to menu
+					resetMenu();
+					break;
+
+				case 38: //up key moves menu
+					if (current_mode === menu_mode) {
+						 selected_menu_item = mod((selected_menu_item + 1), menu_options.length);
+						 drawOverlay();
+					}
+					break;
+
+				case 40: //down key moves menu
+					if (current_mode === menu_mode) {
+						selected_menu_item = mod((selected_menu_item - 1), menu_options.length);
+						drawOverlay();
+					}
+					break;
+
+				case 13: //enter key selects the current mode
+					modeSelected(menu_options[selected_menu_item]);
+					break;
 
 				case 32: //space fires laser
 					fireLaser();
 					break;
 
 				case 80://p for planet
-					targetWorld();
+					if (current_mode === planet_mode) {
+						targetWorld();
+					}
 					break;
 
 				case 77://m for moons
 
 					break;
-
 
 				case 16: //shift speeds up ship
 					speedUpShip();
@@ -718,7 +842,7 @@ document.onkeyup = function move(e) {
 
 try {
   	init();
-		initHUD();
+		initOverlay();
   	fillScene();
   	animate();
 
