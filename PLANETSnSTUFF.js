@@ -113,13 +113,13 @@ const addLight = (h, s, l, x, y, z ) => {
 	var light = new THREE.PointLight( 0xffffff, lightConstant*2, 3000*scale, 2 );
 	light.color.setHSL( h, s, l)
 	light.position.set( x, y, z );
-	// light.castShadow = true;
-    // light.shadow.camera.near = 0.1;
-    // light.shadow.camera.far = 2500;
-    // light.shadow.camera.left = -1000;
-    // light.shadow.camera.right = 1000;
-    // light.shadow.camera.top = 1000;
-    // light.shadow.camera.bottom = -1000;
+	light.castShadow = true;
+    light.shadow.camera.near = 0.1;
+    light.shadow.camera.far = 2500;
+    light.shadow.camera.left = -1000;
+    light.shadow.camera.right = 1000;
+    light.shadow.camera.top = 1000;
+    light.shadow.camera.bottom = -1000;
 
 	scene.add( light );
 
@@ -171,6 +171,8 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 	planetMesh.position.x = x;
 	planetMesh.position.y = y+radius;
 	planetMesh.position.z = z;
+	planetMesh.castShadow = true;
+	planetMesh.receiveShadow = true;
 
 	let cloudMesh = null;
 	let ringMesh = null;
@@ -251,6 +253,8 @@ const drawMainShip = () => {
           mainShip.position.x =500;
           mainShip.position.y =0;
           mainShip.position.z =900;
+          mainShip.castShadow = true;
+          // mainship.receiveShadow = true;
 
 					mainShip.maxSpeed = 2;
 					mainShip.minSpeed = 0;
