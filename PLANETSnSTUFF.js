@@ -9,7 +9,7 @@ class Planet{
 		this.rings = rings;
 		this.moons = moons;
 		this.tether = tether;
-		this.orbit = 1/((base.position.x)/4);
+		this.orbit = 10/(Math.pow(base.position.x/25,2));
 	}
 
 	animate(delta){
@@ -39,8 +39,9 @@ var clock = new THREE.Clock();
 const width = window.innerWidth;
 const height = window.innerHeight
 
+const scale = 25;
 const lightConstant = 1.5;
-const planetRadius = 1; // for an average planet
+const planetRadius = 1*scale; // for an average planet
 
 var cameraMinDistance = planetRadius*2.5;
 var cameraMaxDistance = planetRadius*3000;
@@ -80,19 +81,20 @@ function fillScene() {
 
 	//The planets
 	//a venus like thick atmosphered terestrial
-	var volcano = drawPlanet({ x:650, y:0, z:0, radius:planetRadius, folder:'tatooine', atmosphere:true });
+	var closestRadius = 600
+	var volcano = drawPlanet({ x:closestRadius, y:0, z:0, radius:planetRadius, folder:'tatooine', atmosphere:true });
 	planets.push(volcano);
 
-	var poke = drawPlanet({ x:750, y:0, z:0, radius:planetRadius, folder:'PokeMap', atmosphere:true,numMoons:1 });
+	var poke = drawPlanet({ x:closestRadius+100*scale, y:0, z:0, radius:planetRadius, folder:'PokeMap', atmosphere:true,numMoons:1 });
 	planets.push(poke);
 
-	var got = drawPlanet({ x:850, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true, numMoons:2 });
+	var got = drawPlanet({ x:closestRadius+200*scale, y:0, z:0, radius:planetRadius, folder:'GoT', atmosphere:true, numMoons:2 });
 	planets.push(got);
 
-	var Ringly = drawPlanet({ x:1050, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
+	var Ringly = drawPlanet({ x:closestRadius+400*scale, y:0, z:0, radius:planetRadius*4, folder:'gasGiant1', atmosphere:true, rings:true, numMoons:8 });
 	planets.push(Ringly);
 
-	var Ringly1 = drawPlanet({ x:1550, y:0, z:0, radius:planetRadius*6, folder:'gasGiant2', atmosphere:true, rings:true, numMoons:10 });
+	var Ringly1 = drawPlanet({ x:closestRadius+800*scale, y:0, z:0, radius:planetRadius*6, folder:'gasGiant2', atmosphere:true, rings:true, numMoons:10 });
 	planets.push(Ringly1);
 
 	for (const i in planets) {
@@ -108,7 +110,7 @@ function fillScene() {
 
 const addLight = (h, s, l, x, y, z ) => {
 
-	var light = new THREE.PointLight( 0xffffff, lightConstant*2, 3000, 2 );
+	var light = new THREE.PointLight( 0xffffff, lightConstant*2, 3000*scale, 2 );
 	light.color.setHSL( h, s, l)
 	light.position.set( x, y, z );
 	// light.castShadow = true;
@@ -140,7 +142,7 @@ const addLight = (h, s, l, x, y, z ) => {
 }
 
 function drawSkyBox(){
-	var geometry = new THREE.CubeGeometry(10000,10000,10000);
+	var geometry = new THREE.CubeGeometry(10000*scale,10000*scale,10000*scale);
 
 	var sides = [
 		new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load("Textures/SkyBox/skybox_right1.jpg"), side: THREE.DoubleSide}),
@@ -191,7 +193,7 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 		moons = [];
 		let minOrbit = radius*6
 		for(let i=0; i<numMoons; i++){
-			let moonRadius = (radius/16)*(1+(Math.random()*3));
+			let moonRadius = (planetRadius/8)*(1+(Math.random()*3));
 			let moon = drawPlanet({x:minOrbit+i*(radius+ moonRadius), y:-moonRadius, z:0, radius:moonRadius, folder:`moon${i%5}`})
 			planetMesh.add(moon.tether);
 			moons.push(moon);
@@ -363,7 +365,7 @@ function init() {
 	// You also want a camera. The camera has a default position, but you most likely want to change this.
 	// You'll also want to allow a viewpoint that is reminiscent of using the machine as described in the pdf
 	// This might include a different position and/or a different field of view etc.
-	camera = new THREE.PerspectiveCamera( 45, canvasRatio, 1, 16000 );
+	camera = new THREE.PerspectiveCamera( 45, canvasRatio, 1, 16000*scale );
 	// Moving the camera with the mouse is simple enough - so this is provided. However, note that by default,
 	// the keyboard moves the viewpoint as well
 	cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
