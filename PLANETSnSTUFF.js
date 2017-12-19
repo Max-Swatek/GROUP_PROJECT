@@ -290,7 +290,7 @@ const startFlightMode = () => {
 	cameraControls.minDistance = cameraMinDistance / 4;
 	cameraControls.maxDistance = cameraMaxDistance / 20;
 	mainShip.add(camera);
-	camera.position.set( 0, 0, 20 );
+	camera.position.set( 0, 5, 20 );
 	console.log(camera);
 }
 
@@ -377,7 +377,7 @@ const drawParticles = ({ minX, maxX, minY, maxY, minZ, maxZ, numParticles }) => 
 
 
 	const material = new THREE.PointsMaterial({
-		size: 1,
+		size: 1 * scale,
 		map: particleMap,
 		transparent: true
 	});
