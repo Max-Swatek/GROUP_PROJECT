@@ -377,7 +377,7 @@ const drawParticles = ({ minX, maxX, minY, maxY, minZ, maxZ, numParticles }) => 
 
 
 	const material = new THREE.PointsMaterial({
-		size: 1 * scale,
+		size: .5 * scale,
 		map: particleMap,
 		transparent: true
 	});
