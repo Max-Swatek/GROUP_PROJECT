@@ -282,7 +282,7 @@ const drawMainShip = () => {
 
 const startFlightMode = () => {
 	mainShip.speed = 1;
-	camera.position.set( 0, planetRadius*5, planetRadius*25);
+	camera.position.set( 0, planetRadius, planetRadius*5 );
 	mainShip.add(camera);
 }
 
