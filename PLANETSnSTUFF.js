@@ -194,7 +194,7 @@ function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
 		let minOrbit = radius*6
 		for(let i=0; i<numMoons; i++){
 			let moonRadius = (planetRadius/8)*(1+(Math.random()*3));
-			let moon = drawPlanet({x:minOrbit+i*(radius+ moonRadius), y:-moonRadius, z:0, radius:moonRadius, folder:`moon${i%5}`})
+			let moon = drawPlanet({x:(minOrbit+i*(radius+ moonRadius))*Math.pow(-1,i), y:-moonRadius, z:Math.random()*minOrbit*Math.pow(-1,i), radius:moonRadius, folder:`moon${i%5}`})
 			planetMesh.add(moon.tether);
 			moons.push(moon);
 		}
