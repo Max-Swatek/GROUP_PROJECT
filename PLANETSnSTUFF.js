@@ -115,11 +115,11 @@ const addLight = (h, s, l, x, y, z ) => {
 	light.position.set( x, y, z );
 	light.castShadow = true;
     light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 2500;
-    light.shadow.camera.left = -1000;
-    light.shadow.camera.right = 1000;
-    light.shadow.camera.top = 1000;
-    light.shadow.camera.bottom = -1000;
+    light.shadow.camera.far = 2500*scale;
+    light.shadow.camera.left = -1000*scale;
+    light.shadow.camera.right = 1000*scale;
+    light.shadow.camera.top = 1000*scale;
+    light.shadow.camera.bottom = -1000*scale;
 
 	scene.add( light );
 
