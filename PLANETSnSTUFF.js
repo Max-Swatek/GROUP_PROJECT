@@ -104,7 +104,7 @@ function fillScene() {
 	drawMainShip();
 
 	//the dust
-	drawParticles({ minX: -1000, maxX: 1000, minY: -150, maxY: 150, minZ: -1000, maxZ: 1000, numParticles: 5000 });
+	drawParticles({ minX: -1000*scale, maxX: 1000*scale, minY: -150*scale, maxY: 150*scale, minZ: -1000*scale, maxZ: 1000*scale, numParticles: 5000 });
 
 }
 
@@ -159,7 +159,7 @@ function drawSkyBox(){
 }
 
 function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
-	let planetGeometry = new THREE.SphereGeometry(radius,32,32);
+	let planetGeometry = new THREE.SphereGeometry(radius,128,128);
 	let planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
 	planetMaterial.bumpMap = new THREE.TextureLoader().load(`/Textures/${folder}/bump.jpg`);
@@ -217,7 +217,7 @@ function makeTether(){
 }
 const makeAtmosphere = ({radius, folder}) => {
 
-	var geometry = new THREE.SphereGeometry(radius, 32, 32);
+	var geometry = new THREE.SphereGeometry(radius, 128, 128);
 	var material = new THREE.MeshPhongMaterial();
 	material.map = new THREE.TextureLoader().load(`/Textures/${folder}/cloud.jpg`);
 	material.alphaMap = new THREE.TextureLoader().load(`/Textures/${folder}/cloudtrans.jpg`);
@@ -334,6 +334,7 @@ const drawParticles = ({ minX, maxX, minY, maxY, minZ, maxZ, numParticles }) => 
 		else if ((z % 3) > 1 || (particle.dX === 0 && particle.dY === 0)) {
 			particle.dZ = -0.025;
 		}
+
 		particleGeometry.vertices.push(particle);
 	}
 
