@@ -1,4 +1,6 @@
 Links:
+http://learningthreejs.com/blog/2013/09/16/how-to-make-the-earth-in-webgl/
+	^^cloudMap & cloudTrans textures & planet strategy 
 https://photojournal.jpl.nasa.gov/jpeg/PIA11673.jpg
 	^^Moon1 texture
 https://img00.deviantart.net/d6f5/i/2010/233/0/4/upsilon_andromedae_c_texture_by_enderion.png
