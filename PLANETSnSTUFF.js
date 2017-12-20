@@ -176,7 +176,7 @@ function drawSkyBox(){
 }
 
 function drawPlanet({x,y,z, radius, folder, atmosphere, rings, numMoons}) {
-	let planetGeometry = new THREE.SphereGeometry(radius,128,128);
+	let planetGeometry = new THREE.SphereGeometry(radius,64,64);
 	let planetMaterial = new THREE.MeshPhongMaterial();
 	planetMaterial.map = new THREE.TextureLoader().load(`/Textures/${folder}/map.jpg`);
 	planetMaterial.bumpMap = new THREE.TextureLoader().load(`/Textures/${folder}/bump.jpg`);
