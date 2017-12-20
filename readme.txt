@@ -1,3 +1,6 @@
+U of M COMP3490 Fall 2017 final project
+Planets n Stuff
+Created by Sarah Brown, Noah Palansky, Max Swatek
 Controls:
 - Main Menu:
 - Select a mode using the up and down arrow keys and the enter button
@@ -20,6 +23,7 @@ Controls:
 - Escape: return to main menu
 - Sources:
 Notes:
+- More information available in WriteUp.pdf
 - You may not be able to see the ship in flight Mode if the camera is zoomed out too far. If you lose sight of the ship just use scroll to zoom in.
 - In Flight mode will experience some lag as it first renders the gas giants with their many moons, however by the time you fly to them performance should be nominal.
 - In the system all planets begin aligned with each other, this is for ease of navigation, as you explore the system, planets will slowly disperse as their orbital period depends on their distance from the sun.
